@@ -66,7 +66,41 @@ Faultline.configure do |config|
 end
 ```
 
-### Notifications
+### GitHub Integration
+
+Create GitHub issues directly from the error dashboard with full context including stack traces, local variables, and source code snippets.
+
+```ruby
+# Store in credentials: rails credentials:edit
+# faultline:
+#   github:
+#     token: "ghp_xxxxx"
+
+config.github_repo = "your-org/your-repo"
+config.github_token = Rails.application.credentials.dig(:faultline, :github, :token)
+config.github_labels = ["bug", "faultline"]  # default labels for created issues
+```
+
+### Notifications (Optional)
+
+Notifications are optional. Faultline will track all errors and display them in the dashboard regardless of whether any notifiers are configured. Add notifiers only if you want to be alerted when errors occur.
+
+#### Resend (Email)
+
+```ruby
+# Store in credentials: rails credentials:edit
+# faultline:
+#   resend:
+#     api_key: "re_xxxxx"
+
+config.add_notifier(
+  Faultline::Notifiers::Resend.new(
+    api_key: Rails.application.credentials.dig(:faultline, :resend, :api_key),
+    from: "errors@yourdomain.com",
+    to: "team@example.com"  # or array: ["dev@example.com", "ops@example.com"]
+  )
+)
+```
 
 #### Telegram
 
@@ -107,38 +141,6 @@ config.add_notifier(
     headers: { "Authorization" => "Bearer #{ENV['WEBHOOK_TOKEN']}" }
   )
 )
-```
-
-#### Resend (Email)
-
-```ruby
-# Store in credentials: rails credentials:edit
-# faultline:
-#   resend:
-#     api_key: "re_xxxxx"
-
-config.add_notifier(
-  Faultline::Notifiers::Resend.new(
-    api_key: Rails.application.credentials.dig(:faultline, :resend, :api_key),
-    from: "errors@yourdomain.com",
-    to: "team@example.com"  # or array: ["dev@example.com", "ops@example.com"]
-  )
-)
-```
-
-### GitHub Integration
-
-Create GitHub issues directly from the error dashboard with full context including stack traces, local variables, and source code snippets.
-
-```ruby
-# Store in credentials: rails credentials:edit
-# faultline:
-#   github:
-#     token: "ghp_xxxxx"
-
-config.github_repo = "your-org/your-repo"
-config.github_token = Rails.application.credentials.dig(:faultline, :github, :token)
-config.github_labels = ["bug", "faultline"]  # default labels for created issues
 ```
 
 ### Rate Limiting
