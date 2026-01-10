@@ -149,7 +149,12 @@ module Faultline
     end
 
     def parsed_local_variables
-      local_variables || {}
+      return {} if local_variables.blank?
+      return local_variables if local_variables.is_a?(Hash)
+
+      JSON.parse(local_variables)
+    rescue
+      {}
     end
 
     def app_backtrace_lines
