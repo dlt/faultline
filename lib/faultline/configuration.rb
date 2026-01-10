@@ -18,6 +18,7 @@ module Faultline
                   :notification_rules,
                   :notification_cooldown,
                   :enable_middleware,
+                  :register_error_subscriber,
                   :middleware_ignore_paths,
                   :backtrace_lines_limit,
                   :sanitize_fields,
@@ -48,6 +49,7 @@ module Faultline
       @notification_rules = default_notification_rules
       @notification_cooldown = 5.minutes
       @enable_middleware = true
+      @register_error_subscriber = false
       @middleware_ignore_paths = ["/assets", "/up", "/health", "/faultline"]
       @backtrace_lines_limit = 50
       @sanitize_fields = %w[password password_confirmation token api_key secret access_token refresh_token]

@@ -6,7 +6,7 @@ A self-hosted error tracking engine for Rails 8+ applications. Track errors, get
 
 ## Features
 
-- **Automatic Error Capture** - Rack middleware catches exceptions automatically
+- **Automatic Error Capture** - Rack middleware + Rails error reporting API
 - **Smart Grouping** - Errors are grouped by fingerprint (class + message + location)
 - **Local Variables Capture** - See variable values at the point where exceptions are raised
 - **Full-Text Search** - Search errors by exception class, message, or file path
@@ -146,6 +146,21 @@ config.notification_rules = {
   notify_in_environments: ["production"]
 }
 ```
+
+### Rails Error Reporting API
+
+Optionally subscribe to Rails' error reporting API to capture errors from background jobs and explicit `Rails.error` calls:
+
+```ruby
+config.register_error_subscriber = true
+```
+
+This captures errors reported via:
+- `Rails.error.handle { ... }` - handled errors (swallowed)
+- `Rails.error.record { ... }` - errors re-raised after reporting
+- `Rails.error.report(exception)` - manual reporting
+
+The middleware captures unhandled exceptions with local variable capture. The error subscriber captures everything else. Both can be enabled together.
 
 ### Error Filtering
 

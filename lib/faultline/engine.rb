@@ -20,6 +20,12 @@ module Faultline
       end
     end
 
+    initializer "faultline.error_subscriber", after: :load_config_initializers do
+      if Faultline.configuration&.register_error_subscriber
+        Rails.error.subscribe(Faultline::ErrorSubscriber.new)
+      end
+    end
+
     config.after_initialize do
       if Faultline.configuration&.authenticate_with.nil? && Rails.env.production?
         Rails.logger.warn "[Faultline] No authentication configured. Dashboard is publicly accessible."
