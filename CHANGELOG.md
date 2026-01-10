@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Database agnostic: supports PostgreSQL, MySQL, and SQLite
 - Rails error reporting API support (`config.register_error_subscriber = true`)
 - Local variables capture via TracePoint when exceptions are raised
 - Full-text search for errors by exception class, message, or file path

@@ -15,11 +15,21 @@ module Faultline
     scope :search, ->(query) {
       return all if query.blank?
 
-      # Sanitize query and add prefix operator for partial matching
-      sanitized = query.to_s.strip.gsub(/[^a-zA-Z0-9\s]/, " ").split.map { |term| "#{term}:*" }.join(" & ")
-      return all if sanitized.blank?
+      sanitized_query = query.to_s.strip
+      return all if sanitized_query.blank?
 
-      where("searchable @@ to_tsquery('simple', ?)", sanitized)
+      if connection.adapter_name.downcase.include?("postgresql")
+        # PostgreSQL: Use tsvector full-text search with prefix matching
+        tsquery = sanitized_query.gsub(/[^a-zA-Z0-9\s]/, " ").split.map { |term| "#{term}:*" }.join(" & ")
+        where("searchable @@ to_tsquery('simple', ?)", tsquery)
+      else
+        # SQLite/MySQL: Fall back to LIKE queries
+        pattern = "%#{sanitized_query}%"
+        where(
+          "exception_class LIKE :q OR sanitized_message LIKE :q OR file_path LIKE :q",
+          q: pattern
+        )
+      end
     }
 
     class << self
@@ -129,20 +139,10 @@ module Faultline
       scope = error_occurrences
       scope = scope.where("created_at >= ?", config[:duration].ago) if config[:duration]
 
-      case config[:granularity]
-      when :minute
-        scope.group(Arel.sql("date_trunc('minute', created_at)"))
-             .order(Arel.sql("date_trunc('minute', created_at)"))
-             .count
-      when :hour
-        scope.group(Arel.sql("date_trunc('hour', created_at)"))
-             .order(Arel.sql("date_trunc('hour', created_at)"))
-             .count
-      else
-        scope.group(Arel.sql("DATE(created_at)"))
-             .order(Arel.sql("DATE(created_at)"))
-             .count
-      end
+      group_expr = date_trunc_sql(config[:granularity])
+      scope.group(Arel.sql(group_expr))
+           .order(Arel.sql(group_expr))
+           .count
     end
 
     def occurrences_in_range(start_time:, end_time:)
@@ -158,20 +158,43 @@ module Faultline
                     end
 
       scope = error_occurrences.where(created_at: start_time..end_time)
+      group_expr = date_trunc_sql(granularity)
+
+      scope.group(Arel.sql(group_expr))
+           .order(Arel.sql(group_expr))
+           .count
+    end
+
+    private
+
+    def date_trunc_sql(granularity)
+      adapter = self.class.connection.adapter_name.downcase
 
       case granularity
       when :minute
-        scope.group(Arel.sql("date_trunc('minute', created_at)"))
-             .order(Arel.sql("date_trunc('minute', created_at)"))
-             .count
+        if adapter.include?("postgresql")
+          "date_trunc('minute', created_at)"
+        elsif adapter.include?("mysql")
+          "DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:00')"
+        else # SQLite
+          "strftime('%Y-%m-%d %H:%M:00', created_at)"
+        end
       when :hour
-        scope.group(Arel.sql("date_trunc('hour', created_at)"))
-             .order(Arel.sql("date_trunc('hour', created_at)"))
-             .count
-      else
-        scope.group(Arel.sql("DATE(created_at)"))
-             .order(Arel.sql("DATE(created_at)"))
-             .count
+        if adapter.include?("postgresql")
+          "date_trunc('hour', created_at)"
+        elsif adapter.include?("mysql")
+          "DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00')"
+        else # SQLite
+          "strftime('%Y-%m-%d %H:00:00', created_at)"
+        end
+      else # :day
+        if adapter.include?("postgresql")
+          "DATE(created_at)"
+        elsif adapter.include?("mysql")
+          "DATE(created_at)"
+        else # SQLite
+          "DATE(created_at)"
+        end
       end
     end
 

@@ -22,7 +22,7 @@ A self-hosted error tracking engine for Rails 8+ applications. Track errors, get
 
 - Ruby >= 3.2
 - Rails >= 8.0
-- PostgreSQL (for `ILIKE` queries)
+- PostgreSQL, MySQL, or SQLite
 
 ## Installation
 

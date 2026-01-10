@@ -25,19 +25,27 @@ class CreateFaultlineErrorGroups < ActiveRecord::Migration<%= migration_version 
     add_index :faultline_error_groups, :status
     add_index :faultline_error_groups, :last_seen_at
 
-    # Full-text search column (generated, no triggers needed)
-    execute <<-SQL
-      ALTER TABLE faultline_error_groups
-      ADD COLUMN searchable tsvector
-      GENERATED ALWAYS AS (
-        to_tsvector('simple',
-          coalesce(exception_class, '') || ' ' ||
-          coalesce(sanitized_message, '') || ' ' ||
-          coalesce(file_path, '')
-        )
-      ) STORED;
-    SQL
+    # PostgreSQL: Add full-text search column with GIN index
+    if postgresql?
+      execute <<-SQL
+        ALTER TABLE faultline_error_groups
+        ADD COLUMN searchable tsvector
+        GENERATED ALWAYS AS (
+          to_tsvector('simple',
+            coalesce(exception_class, '') || ' ' ||
+            coalesce(sanitized_message, '') || ' ' ||
+            coalesce(file_path, '')
+          )
+        ) STORED;
+      SQL
 
-    add_index :faultline_error_groups, :searchable, using: :gin
+      add_index :faultline_error_groups, :searchable, using: :gin
+    end
+  end
+
+  private
+
+  def postgresql?
+    ActiveRecord::Base.connection.adapter_name.downcase.include?("postgresql")
   end
 end
