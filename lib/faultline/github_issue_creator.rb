@@ -97,9 +97,10 @@ module Faultline
     end
 
     def format_backtrace
-      return "No backtrace available" if @error_occurrence.backtrace.blank?
+      backtrace = @error_occurrence.parsed_backtrace
+      return "No backtrace available" if backtrace.blank?
 
-      @error_occurrence.backtrace.first(20).join("\n")
+      backtrace.first(20).join("\n")
     end
 
     def local_variables_section
