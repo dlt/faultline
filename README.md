@@ -8,7 +8,8 @@ A self-hosted error tracking engine for Rails 8+ applications. Track errors, get
 
 - **Automatic Error Capture** - Rack middleware + Rails error reporting API
 - **Smart Grouping** - Errors are grouped by fingerprint (class + message + location)
-- **Local Variables Capture** - See variable values at the point where exceptions are raised
+- **Debugger Inspector** - Side-by-side source code and local variables view, like a real debugger
+- **Local Variables Capture** - Automatic capture of variable values at the raise point
 - **Full-Text Search** - Search errors by exception class, message, or file path
 - **Status Management** - Mark errors as resolved, unresolved, or ignored
 - **Auto-Reopen** - Resolved errors automatically reopen when they recur
