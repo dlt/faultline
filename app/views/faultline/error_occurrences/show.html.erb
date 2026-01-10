@@ -152,37 +152,37 @@
   <!-- Debugger Inspector: Source + Variables Side by Side -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
     <!-- Source Code Panel -->
-    <div class="bg-gray-900 shadow rounded-lg overflow-hidden">
-      <div class="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
           </svg>
-          <h2 class="text-sm font-medium text-gray-200">Source</h2>
+          <h2 class="text-sm font-medium text-gray-900">Source</h2>
         </div>
         <% if has_source %>
-          <span class="text-xs text-gray-400 font-mono"><%= source_context[:file_path] %></span>
+          <span class="text-xs text-gray-500 font-mono"><%= source_context[:file_path] %></span>
         <% end %>
       </div>
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto bg-gray-50">
         <% if has_source %>
           <table class="w-full">
             <tbody class="font-mono text-xs">
               <% source_context[:lines].each do |line| %>
-                <tr class="<%= line[:current] ? 'bg-red-900/40' : 'hover:bg-gray-800/50' %>">
-                  <td class="px-3 py-0.5 text-right select-none w-12 <%= line[:current] ? 'text-red-400 font-bold' : 'text-gray-500' %>">
+                <tr class="<%= line[:current] ? 'bg-red-100 border-l-2 border-red-500' : 'hover:bg-gray-100' %>">
+                  <td class="px-3 py-0.5 text-right select-none w-12 border-r border-gray-200 <%= line[:current] ? 'text-red-600 font-bold bg-red-50' : 'text-gray-400' %>">
                     <%= line[:number] %>
                   </td>
-                  <td class="px-2 py-0.5 w-4 <%= line[:current] ? 'text-red-400' : '' %>">
+                  <td class="px-2 py-0.5 w-4 <%= line[:current] ? 'text-red-500' : '' %>">
                     <%= line[:current] ? '→' : '' %>
                   </td>
-                  <td class="pr-4 py-0.5 text-gray-300 whitespace-pre"><%= line[:code] %></td>
+                  <td class="pr-4 py-0.5 whitespace-pre"><%= highlight_ruby(line[:code]) %></td>
                 </tr>
               <% end %>
             </tbody>
           </table>
         <% else %>
-          <div class="p-8 text-center text-gray-500 text-sm">
+          <div class="p-8 text-center text-gray-400 text-sm">
             <p>Source not available</p>
           </div>
         <% end %>
