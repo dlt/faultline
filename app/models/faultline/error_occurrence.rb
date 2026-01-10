@@ -155,5 +155,31 @@ module Faultline
     def app_backtrace_lines
       parsed_backtrace.select { |line| line.include?(Rails.root.to_s) && !line.include?("/gems/") }
     end
+
+    def source_context(context_lines: 7)
+      first_app_line = app_backtrace_lines.first
+      return nil unless first_app_line
+
+      match = first_app_line.match(/^(.+):(\d+):in/)
+      return nil unless match
+
+      file_path = match[1]
+      line_number = match[2].to_i
+
+      return nil unless File.exist?(file_path)
+
+      lines = File.readlines(file_path)
+      start_line = [line_number - context_lines, 1].max
+      end_line = [line_number + context_lines, lines.length].min
+
+      {
+        file_path: file_path.sub(Rails.root.to_s + "/", ""),
+        line_number: line_number,
+        start_line: start_line,
+        lines: (start_line..end_line).map { |n| { number: n, code: lines[n - 1]&.chomp || "", current: n == line_number } }
+      }
+    rescue
+      nil
+    end
   end
 end
