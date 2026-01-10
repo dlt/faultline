@@ -128,21 +128,15 @@ module Faultline
 
     def extract_custom_data(env, request)
       config = Faultline.configuration
-      data = { path: request.path }
 
-      if config.account_method && env["action_controller.instance"]
-        controller = env["action_controller.instance"]
-
-        if controller.respond_to?(config.account_method, true)
-          account = controller.send(config.account_method)
-          data[:account_id] = account&.id
-        end
+      if config.custom_context
+        config.custom_context.call(request, env)
+      else
+        {}
       end
-
-      data
     rescue => e
       Rails.logger.debug "[Faultline] Could not extract custom data: #{e.message}"
-      { path: request.path }
+      {}
     end
   end
 end

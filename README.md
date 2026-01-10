@@ -197,13 +197,22 @@ config.ignored_user_agents = [/bot/i, /crawler/i, /Googlebot/i]
 config.middleware_ignore_paths = ["/assets", "/health"]
 ```
 
-### Multi-tenant Support
+### Custom Context
+
+Add custom data to every error occurrence. The lambda receives the request and Rack env, and should return a hash:
 
 ```ruby
-config.user_class = "User"
-config.user_method = :current_user
-config.account_method = :current_account  # Optional
+config.custom_context = lambda { |request, env|
+  controller = env["action_controller.instance"]
+  {
+    account_id: controller&.current_account&.id,
+    tenant: request.subdomain,
+    feature_flags: controller&.enabled_features
+  }
+}
 ```
+
+This data is stored with each occurrence and displayed in the dashboard under "Custom Context".
 
 ## Usage
 

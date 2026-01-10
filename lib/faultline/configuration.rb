@@ -4,7 +4,7 @@ module Faultline
   class Configuration
     attr_accessor :user_class,
                   :user_method,
-                  :account_method,
+                  :custom_context,
                   :ignored_exceptions,
                   :ignored_user_agents,
                   :filter_parameters,
@@ -30,7 +30,7 @@ module Faultline
     def initialize
       @user_class = "User"
       @user_method = :current_user
-      @account_method = nil
+      @custom_context = nil
       @ignored_exceptions = [
         "ActiveRecord::RecordNotFound",
         "ActionController::RoutingError",

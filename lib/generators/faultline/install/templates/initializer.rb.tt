@@ -11,8 +11,15 @@ Faultline.configure do |config|
   # Method to get current user in controllers
   config.user_method = :current_user
 
-  # Method to get current account (optional, for multi-tenant apps)
-  # config.account_method = :current_account
+  # Custom context - add extra data to every error occurrence
+  # Receives request and Rack env, should return a hash
+  # config.custom_context = lambda { |request, env|
+  #   controller = env["action_controller.instance"]
+  #   {
+  #     account_id: controller&.current_account&.id,
+  #     tenant: request.subdomain
+  #   }
+  # }
 
   # =============================================================================
   # Error Filtering
