@@ -1,145 +1,129 @@
 <div class="mb-6">
   <nav class="flex items-center gap-2 text-sm">
-    <%= link_to "Errors", faultline.error_groups_path, class: "text-gray-500 hover:text-gray-700" %>
-    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-    </svg>
-    <%= link_to @error_group.exception_class, faultline.error_group_path(@error_group), class: "text-gray-500 hover:text-gray-700 truncate max-w-xs" %>
-    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-    </svg>
-    <span class="text-gray-900 font-medium">Occurrence</span>
+    <%= link_to "Errors", faultline.error_groups_path, class: "text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" %>
+    <span class="material-symbols-outlined text-slate-400 text-base">chevron_right</span>
+    <%= link_to @error_group.exception_class, faultline.error_group_path(@error_group), class: "text-slate-500 dark:text-slate-400 hover:text-primary truncate max-w-xs transition-colors" %>
+    <span class="material-symbols-outlined text-slate-400 text-base">chevron_right</span>
+    <span class="text-slate-900 dark:text-white font-medium">Occurrence</span>
   </nav>
 </div>
 
 <!-- Header -->
-<div class="bg-white shadow rounded-lg overflow-hidden mb-6">
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden mb-6 glow-border">
   <div class="px-6 py-5">
     <div class="flex items-center gap-3 mb-3">
-      <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-cyan-100 text-cyan-700 border border-cyan-200">
+      <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-primary/10 text-primary border border-primary/20">
         <%= @occurrence.exception_class %>
       </span>
-      <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+      <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
         <%= @occurrence.environment %>
       </span>
-      <span class="text-xs text-gray-400 ml-auto"><%= @occurrence.created_at.strftime("%b %d, %Y at %H:%M:%S") %></span>
+      <span class="text-xs text-slate-400 ml-auto"><%= @occurrence.created_at.strftime("%b %d, %Y at %H:%M:%S") %></span>
     </div>
-    <p class="text-lg text-gray-900 font-medium leading-relaxed"><%= @occurrence.message %></p>
+    <p class="text-lg text-slate-900 dark:text-white font-medium leading-relaxed"><%= @occurrence.message %></p>
   </div>
 </div>
 
 <!-- Metadata Row -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-  <div class="bg-white shadow rounded-lg px-4 py-4">
-    <div class="flex items-center gap-2 text-gray-500 text-xs mb-2">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-4">
+    <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-2">
+      <span class="material-symbols-outlined text-base">person</span>
       User
     </div>
-    <p class="text-gray-900 text-sm font-medium truncate"><%= @occurrence.user_identifier || "Anonymous" %></p>
+    <p class="text-slate-900 dark:text-white text-sm font-medium truncate"><%= @occurrence.user_identifier || "Anonymous" %></p>
   </div>
 
-  <div class="bg-white shadow rounded-lg px-4 py-4">
-    <div class="flex items-center gap-2 text-gray-500 text-xs mb-2">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-      </svg>
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-4">
+    <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-2">
+      <span class="material-symbols-outlined text-base">language</span>
       IP Address
     </div>
-    <p class="text-gray-900 text-sm font-medium font-mono"><%= @occurrence.ip_address || "Unknown" %></p>
+    <p class="text-slate-900 dark:text-white text-sm font-medium font-mono"><%= @occurrence.ip_address || "Unknown" %></p>
   </div>
 
-  <div class="bg-white shadow rounded-lg px-4 py-4">
-    <div class="flex items-center gap-2 text-gray-500 text-xs mb-2">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
-      </svg>
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-4">
+    <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-2">
+      <span class="material-symbols-outlined text-base">dns</span>
       Server
     </div>
-    <p class="text-gray-900 text-sm font-medium truncate"><%= @occurrence.hostname %></p>
-    <p class="text-gray-500 text-xs">PID: <%= @occurrence.process_id %></p>
+    <p class="text-slate-900 dark:text-white text-sm font-medium truncate"><%= @occurrence.hostname %></p>
+    <p class="text-slate-500 dark:text-slate-400 text-xs">PID: <%= @occurrence.process_id %></p>
   </div>
 
-  <div class="bg-white shadow rounded-lg px-4 py-4">
-    <div class="flex items-center gap-2 text-gray-500 text-xs mb-2">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-4">
+    <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-2">
+      <span class="material-symbols-outlined text-base">schedule</span>
       When
     </div>
-    <p class="text-gray-900 text-sm font-medium"><%= time_ago_in_words(@occurrence.created_at) %> ago</p>
+    <p class="text-slate-900 dark:text-white text-sm font-medium"><%= time_ago_in_words(@occurrence.created_at) %> ago</p>
   </div>
 </div>
 
 <% if @occurrence.request_url.present? %>
   <!-- Request Info -->
-  <div class="bg-white shadow rounded-lg overflow-hidden mb-6">
-      <div class="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
-        <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-        </svg>
-        <h2 class="text-sm font-medium text-gray-900">Request</h2>
-      </div>
-      <div class="p-4 space-y-4 max-h-96 overflow-y-auto">
-        <div>
-          <div class="flex items-center gap-2 mb-2">
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-cyan-100 text-cyan-700">
-              <%= @occurrence.request_method %>
-            </span>
-          </div>
-          <code class="text-xs text-gray-600 break-all block bg-gray-50 p-2 rounded"><%= @occurrence.request_url %></code>
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden mb-6 glow-border">
+    <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">link</span>
+      <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Request</h2>
+    </div>
+    <div class="p-4 space-y-4 max-h-96 overflow-y-auto">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-primary/10 text-primary">
+            <%= @occurrence.request_method %>
+          </span>
         </div>
+        <code class="text-xs text-slate-600 dark:text-slate-400 break-all block bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg"><%= @occurrence.request_url %></code>
+      </div>
 
-        <% if @occurrence.user_agent.present? %>
-          <div>
-            <p class="text-xs font-medium text-gray-500 mb-1">User Agent</p>
-            <p class="text-xs text-gray-700 break-all"><%= @occurrence.user_agent %></p>
-          </div>
-        <% end %>
+      <% if @occurrence.user_agent.present? %>
+        <div>
+          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">User Agent</p>
+          <p class="text-xs text-slate-700 dark:text-slate-300 break-all"><%= @occurrence.user_agent %></p>
+        </div>
+      <% end %>
 
-        <% if @occurrence.parsed_request_params.any? %>
-          <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">Parameters</p>
-            <pre class="text-xs bg-gray-50 text-gray-700 p-3 rounded-md overflow-x-auto font-mono"><code><%= JSON.pretty_generate(@occurrence.parsed_request_params) %></code></pre>
-          </div>
-        <% end %>
+      <% if @occurrence.parsed_request_params.any? %>
+        <div>
+          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Parameters</p>
+          <pre class="text-xs bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 p-3 rounded-lg overflow-x-auto font-mono"><code><%= JSON.pretty_generate(@occurrence.parsed_request_params) %></code></pre>
+        </div>
+      <% end %>
 
-        <% if @occurrence.parsed_request_headers.any? %>
-          <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">Headers</p>
-            <pre class="text-xs bg-gray-50 text-gray-700 p-3 rounded-md overflow-x-auto font-mono"><code><%= JSON.pretty_generate(@occurrence.parsed_request_headers) %></code></pre>
-          </div>
-        <% end %>
+      <% if @occurrence.parsed_request_headers.any? %>
+        <div>
+          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Headers</p>
+          <pre class="text-xs bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 p-3 rounded-lg overflow-x-auto font-mono"><code><%= JSON.pretty_generate(@occurrence.parsed_request_headers) %></code></pre>
+        </div>
+      <% end %>
     </div>
   </div>
 <% end %>
 
 <% if @occurrence.error_contexts.any? %>
   <!-- Custom Context -->
-  <div class="bg-white shadow rounded-lg overflow-hidden mb-6">
-      <div class="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
-        <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-        </svg>
-        <h2 class="text-sm font-medium text-gray-900">Custom Context</h2>
-      </div>
-      <div class="divide-y divide-gray-100">
-        <% @occurrence.error_contexts.each do |context| %>
-          <div class="px-4 py-3">
-            <div class="flex items-start gap-4">
-              <span class="text-xs font-medium text-gray-500 w-28 flex-shrink-0 pt-0.5"><%= context.key %></span>
-              <div class="flex-1 min-w-0">
-                <% parsed = context.parsed_value %>
-                <% if parsed.is_a?(Hash) || parsed.is_a?(Array) %>
-                  <pre class="text-xs bg-gray-50 text-gray-700 p-3 rounded-md overflow-x-auto font-mono"><code><%= JSON.pretty_generate(parsed) %></code></pre>
-                <% else %>
-                  <span class="text-sm text-gray-900 font-mono"><%= parsed %></span>
-                <% end %>
-              </div>
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden mb-6 glow-border">
+    <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+      <span class="material-symbols-outlined text-violet-500">sell</span>
+      <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Custom Context</h2>
+    </div>
+    <div class="divide-y divide-slate-100 dark:divide-slate-800">
+      <% @occurrence.error_contexts.each do |context| %>
+        <div class="px-4 py-3">
+          <div class="flex items-start gap-4">
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28 flex-shrink-0 pt-0.5"><%= context.key %></span>
+            <div class="flex-1 min-w-0">
+              <% parsed = context.parsed_value %>
+              <% if parsed.is_a?(Hash) || parsed.is_a?(Array) %>
+                <pre class="text-xs bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 p-3 rounded-lg overflow-x-auto font-mono"><code><%= JSON.pretty_generate(parsed) %></code></pre>
+              <% else %>
+                <span class="text-sm text-slate-900 dark:text-white font-mono"><%= parsed %></span>
+              <% end %>
             </div>
           </div>
-        <% end %>
+        </div>
+      <% end %>
     </div>
   </div>
 <% end %>
@@ -152,37 +136,36 @@
   <!-- Debugger Inspector: Source + Variables Side by Side -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
     <!-- Source Code Panel -->
-    <div class="bg-white shadow rounded-lg overflow-hidden">
-      <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden glow-border">
+      <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-          </svg>
-          <h2 class="text-sm font-medium text-gray-900">Source</h2>
+          <span class="material-symbols-outlined text-primary text-base">code</span>
+          <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Source</h2>
         </div>
         <% if has_source %>
-          <span class="text-xs text-gray-500 font-mono"><%= source_context[:file_path] %></span>
+          <span class="text-xs text-slate-500 dark:text-slate-400 font-mono truncate max-w-xs"><%= source_context[:file_path] %></span>
         <% end %>
       </div>
-      <div class="overflow-x-auto bg-gray-50">
+      <div class="overflow-x-auto bg-slate-50 dark:bg-slate-800/30">
         <% if has_source %>
           <table class="w-full">
             <tbody class="font-mono text-xs">
               <% source_context[:lines].each do |line| %>
-                <tr class="<%= line[:current] ? 'bg-red-100 border-l-2 border-red-500' : 'hover:bg-gray-100' %>">
-                  <td class="px-3 py-0.5 text-right select-none w-12 border-r border-gray-200 <%= line[:current] ? 'text-red-600 font-bold bg-red-50' : 'text-gray-400' %>">
+                <tr class="<%= line[:current] ? 'bg-rose-100 dark:bg-rose-900/30 border-l-2 border-rose-500' : 'hover:bg-slate-100 dark:hover:bg-slate-800/50' %>">
+                  <td class="px-3 py-0.5 text-right select-none w-12 border-r border-slate-200 dark:border-slate-700 <%= line[:current] ? 'text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-900/20' : 'text-slate-400' %>">
                     <%= line[:number] %>
                   </td>
-                  <td class="px-2 py-0.5 w-4 <%= line[:current] ? 'text-red-500' : '' %>">
+                  <td class="px-2 py-0.5 w-4 <%= line[:current] ? 'text-rose-500' : '' %>">
                     <%= line[:current] ? '→' : '' %>
                   </td>
-                  <td class="pr-4 py-0.5 whitespace-pre"><%= highlight_ruby(line[:code]) %></td>
+                  <td class="pr-4 py-0.5 whitespace-pre text-slate-700 dark:text-slate-300"><%= highlight_ruby(line[:code]) %></td>
                 </tr>
               <% end %>
             </tbody>
           </table>
         <% else %>
-          <div class="p-8 text-center text-gray-400 text-sm">
+          <div class="p-8 text-center text-slate-400 text-sm">
+            <span class="material-symbols-outlined text-3xl mb-2 block">code_off</span>
             <p>Source not available</p>
           </div>
         <% end %>
@@ -190,60 +173,58 @@
     </div>
 
     <!-- Variables Inspector Panel -->
-    <div class="bg-white shadow rounded-lg overflow-hidden">
-      <div class="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
-        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-        </svg>
-        <h2 class="text-sm font-medium text-gray-900">Variables</h2>
-        <span class="text-xs text-gray-400">at raise point</span>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden glow-border">
+      <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+        <span class="material-symbols-outlined text-amber-500 text-base">database</span>
+        <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Variables</h2>
+        <span class="text-xs text-slate-400">at raise point</span>
       </div>
       <div class="overflow-y-auto max-h-80">
         <% if has_locals %>
           <table class="w-full text-xs">
-            <thead class="bg-gray-50 sticky top-0">
+            <thead class="bg-slate-50 dark:bg-slate-800/50 sticky top-0">
               <tr>
-                <th class="px-3 py-2 text-left text-gray-500 font-medium w-1/3">Name</th>
-                <th class="px-3 py-2 text-left text-gray-500 font-medium">Value</th>
+                <th class="px-3 py-2 text-left text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider w-1/3">Name</th>
+                <th class="px-3 py-2 text-left text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Value</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100 font-mono">
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono">
               <% @occurrence.parsed_local_variables.each do |name, value| %>
-                <tr class="hover:bg-amber-50/50">
-                  <td class="px-3 py-2 text-amber-600 font-medium align-top whitespace-nowrap"><%= name %></td>
-                  <td class="px-3 py-2 text-gray-700 align-top">
+                <tr class="hover:bg-amber-50/50 dark:hover:bg-amber-900/10">
+                  <td class="px-3 py-2 text-amber-600 dark:text-amber-400 font-medium align-top whitespace-nowrap"><%= name %></td>
+                  <td class="px-3 py-2 text-slate-700 dark:text-slate-300 align-top">
                     <% if value.is_a?(Hash) %>
-                      <span class="text-purple-600">{</span>
-                      <div class="pl-3 border-l border-gray-200 ml-1 mt-1 space-y-0.5">
+                      <span class="text-purple-600 dark:text-purple-400">{</span>
+                      <div class="pl-3 border-l border-slate-200 dark:border-slate-700 ml-1 mt-1 space-y-0.5">
                         <% value.each do |k, v| %>
-                          <div><span class="text-gray-500"><%= k %>:</span> <span class="text-emerald-600"><%= v.inspect.truncate(50) %></span></div>
+                          <div><span class="text-slate-500 dark:text-slate-400"><%= k %>:</span> <span class="text-emerald-600 dark:text-emerald-400"><%= v.inspect.truncate(50) %></span></div>
                         <% end %>
                       </div>
-                      <span class="text-purple-600">}</span>
+                      <span class="text-purple-600 dark:text-purple-400">}</span>
                     <% elsif value.is_a?(Array) %>
-                      <span class="text-purple-600">[</span><span class="text-gray-500"><%= value.length %> items</span><span class="text-purple-600">]</span>
+                      <span class="text-purple-600 dark:text-purple-400">[</span><span class="text-slate-500 dark:text-slate-400"><%= value.length %> items</span><span class="text-purple-600 dark:text-purple-400">]</span>
                       <% if value.any? %>
-                        <div class="pl-3 border-l border-gray-200 ml-1 mt-1 space-y-0.5">
+                        <div class="pl-3 border-l border-slate-200 dark:border-slate-700 ml-1 mt-1 space-y-0.5">
                           <% value.first(5).each_with_index do |v, i| %>
-                            <div><span class="text-gray-400"><%= i %>:</span> <span class="text-emerald-600"><%= v.inspect.truncate(40) %></span></div>
+                            <div><span class="text-slate-400"><%= i %>:</span> <span class="text-emerald-600 dark:text-emerald-400"><%= v.inspect.truncate(40) %></span></div>
                           <% end %>
                           <% if value.length > 5 %>
-                            <div class="text-gray-400 italic">... <%= value.length - 5 %> more</div>
+                            <div class="text-slate-400 italic">... <%= value.length - 5 %> more</div>
                           <% end %>
                         </div>
                       <% end %>
                     <% elsif value.is_a?(String) && value.start_with?("[") %>
-                      <span class="text-gray-400 italic"><%= value %></span>
+                      <span class="text-slate-400 italic"><%= value %></span>
                     <% elsif value.is_a?(String) %>
-                      <span class="text-emerald-600">"<%= value.truncate(60) %>"</span>
+                      <span class="text-emerald-600 dark:text-emerald-400">"<%= value.truncate(60) %>"</span>
                     <% elsif value.is_a?(Numeric) %>
-                      <span class="text-blue-600"><%= value %></span>
+                      <span class="text-blue-600 dark:text-blue-400"><%= value %></span>
                     <% elsif value == true || value == false %>
-                      <span class="text-orange-600"><%= value %></span>
+                      <span class="text-orange-600 dark:text-orange-400"><%= value %></span>
                     <% elsif value.nil? %>
-                      <span class="text-gray-400">nil</span>
+                      <span class="text-slate-400">nil</span>
                     <% else %>
-                      <span class="text-gray-600"><%= value.inspect.truncate(60) %></span>
+                      <span class="text-slate-600 dark:text-slate-400"><%= value.inspect.truncate(60) %></span>
                     <% end %>
                   </td>
                 </tr>
@@ -251,7 +232,8 @@
             </tbody>
           </table>
         <% else %>
-          <div class="p-8 text-center text-gray-400 text-sm">
+          <div class="p-8 text-center text-slate-400 text-sm">
+            <span class="material-symbols-outlined text-3xl mb-2 block">variables</span>
             <p>No local variables captured</p>
           </div>
         <% end %>
@@ -261,27 +243,25 @@
 <% end %>
 
 <!-- Stack Trace (Full Width) -->
-<div class="bg-white shadow rounded-lg overflow-hidden">
-  <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden glow-border">
+  <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-      </svg>
-      <h2 class="text-sm font-medium text-gray-900">Stack Trace</h2>
+      <span class="material-symbols-outlined text-primary">view_list</span>
+      <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Stack Trace</h2>
     </div>
-    <span class="text-xs text-gray-500"><%= @occurrence.parsed_backtrace.count %> frames</span>
+    <span class="text-xs text-slate-500 dark:text-slate-400"><%= @occurrence.parsed_backtrace.count %> frames</span>
   </div>
-  <div class="p-4 bg-gray-50 overflow-x-auto">
+  <div class="p-4 bg-slate-50 dark:bg-slate-800/30 overflow-x-auto">
     <% if @occurrence.parsed_backtrace.any? %>
       <div class="space-y-0.5 font-mono text-xs">
         <% @occurrence.parsed_backtrace.each_with_index do |line, index| %>
           <% is_app_line = line.include?(Rails.root.to_s) && !line.include?("/gems/") %>
           <% clean_line = line.sub(Rails.root.to_s + "/", "") %>
-          <div class="group flex items-start gap-3 <%= is_app_line ? 'bg-cyan-50 -mx-2 px-2 py-1.5 rounded border-l-2 border-cyan-500' : 'py-1 -mx-2 px-2' %>">
-            <span class="text-gray-400 select-none w-6 text-right flex-shrink-0"><%= index + 1 %></span>
-            <span class="<%= is_app_line ? 'text-gray-800' : 'text-gray-500' %> break-all">
+          <div class="group flex items-start gap-3 <%= is_app_line ? 'bg-primary/5 dark:bg-primary/10 -mx-2 px-2 py-1.5 rounded border-l-2 border-primary' : 'py-1 -mx-2 px-2' %>">
+            <span class="text-slate-400 select-none w-6 text-right flex-shrink-0"><%= index + 1 %></span>
+            <span class="<%= is_app_line ? 'text-slate-800 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400' %> break-all">
               <% if clean_line =~ /^(.+):(\d+):in `(.+)'$/ %>
-                <span class="<%= is_app_line ? 'text-gray-700' : 'text-gray-500' %>"><%= $1 %></span><span class="text-gray-400">:</span><span class="text-violet-600"><%= $2 %></span><span class="text-gray-400">:in </span><span class="text-cyan-600">`<%= $3 %>'</span>
+                <span class="<%= is_app_line ? 'text-slate-700 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400' %>"><%= $1 %></span><span class="text-slate-400">:</span><span class="text-violet-600 dark:text-violet-400"><%= $2 %></span><span class="text-slate-400">:in </span><span class="text-primary">`<%= $3 %>'</span>
               <% else %>
                 <%= clean_line %>
               <% end %>
@@ -290,7 +270,10 @@
         <% end %>
       </div>
     <% else %>
-      <p class="text-sm text-gray-500 text-center py-8">No backtrace available</p>
+      <div class="text-center py-8">
+        <span class="material-symbols-outlined text-3xl text-slate-400 mb-2 block">layers_clear</span>
+        <p class="text-sm text-slate-500 dark:text-slate-400">No backtrace available</p>
+      </div>
     <% end %>
   </div>
 </div>

@@ -1,19 +1,26 @@
-<nav class="bg-gray-800">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="flex h-16 items-center justify-between">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <%= link_to faultline.root_path, class: "flex items-center" do %>
-            <svg class="h-8 w-8 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span class="ml-2 text-white font-bold text-lg">Faultline</span>
-          <% end %>
+<nav class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+  <div class="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-8">
+      <%= link_to faultline.root_path, class: "flex items-center gap-2" do %>
+        <div class="bg-primary p-1.5 rounded-lg">
+          <span class="material-symbols-outlined text-white font-bold block text-xl">warning</span>
         </div>
-        <div class="ml-10 flex items-baseline space-x-4">
-          <%= link_to "Errors", faultline.error_groups_path,
-              class: "#{request.path == faultline.root_path || request.path.include?('error_groups') ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'} rounded-md px-3 py-2 text-sm font-medium" %>
-        </div>
+        <span class="text-xl font-bold tracking-tight">Faultline</span>
+      <% end %>
+      <div class="hidden md:flex items-center gap-1">
+        <%= link_to "Errors", faultline.error_groups_path,
+            class: "px-4 py-2 text-sm font-medium rounded-md #{request.path == faultline.root_path || request.path.include?('error') ? 'bg-slate-100 dark:bg-slate-800 text-primary' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}" %>
+        <span class="px-4 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 cursor-not-allowed">Performance</span>
+        <span class="px-4 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 cursor-not-allowed">Alerts</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-6">
+      <%= yield :navbar_stats %>
+      <button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+      <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+        <span class="material-symbols-outlined text-slate-500 dark:text-slate-400 text-lg">person</span>
       </div>
     </div>
   </div>

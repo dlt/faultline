@@ -1,36 +1,44 @@
-<div class="mb-4 flex items-center justify-between">
-  <h1 class="text-2xl font-bold text-gray-900">Errors</h1>
-  <div class="flex items-center gap-4 text-sm">
-    <span class="text-gray-500">Today: <span class="font-semibold text-gray-900"><%= @occurrences_today %></span></span>
-    <span class="text-gray-500">This week: <span class="font-semibold text-gray-900"><%= @occurrences_this_week %></span></span>
+<% content_for :navbar_stats do %>
+  <div class="hidden sm:flex items-center gap-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+    <div>Today: <span class="text-slate-900 dark:text-white"><%= @occurrences_today %></span></div>
+    <div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
+    <div>This week: <span class="text-slate-900 dark:text-white"><%= @occurrences_this_week %></span></div>
   </div>
-</div>
+<% end %>
 
-<div class="bg-white shadow rounded-lg overflow-hidden mb-6">
-  <div class="px-4 py-3 sm:px-6 border-b border-gray-200 flex items-center justify-between">
-    <h2 class="text-sm font-medium text-gray-700">Occurrences</h2>
-    <div class="flex gap-1">
-      <% Faultline::ErrorGroup::PERIODS.keys.each do |period| %>
-        <%= link_to period,
-            faultline.error_groups_path(
-              chart_period: period,
-              status: params[:status],
-              exception_class: params[:exception_class],
-              q: params[:q],
-              sort: params[:sort]
-            ),
-            class: "px-2 py-1 text-xs rounded #{@chart_period == period ? 'bg-cyan-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
-      <% end %>
-    </div>
-  </div>
-  <div class="p-4">
-    <% if @chart_data.any? %>
-      <canvas id="overviewChart" height="60"></canvas>
-    <% else %>
-      <p class="text-center text-gray-500 py-4 text-sm">No occurrences in this period</p>
+<header class="flex items-center justify-between mb-8">
+  <h1 class="text-3xl font-bold tracking-tight">Errors</h1>
+  <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+    <% Faultline::ErrorGroup::PERIODS.keys.each do |period| %>
+      <%= link_to period,
+          faultline.error_groups_path(
+            chart_period: period,
+            status: params[:status],
+            exception_class: params[:exception_class],
+            q: params[:q],
+            sort: params[:sort]
+          ),
+          class: "px-3 py-1.5 text-xs font-medium rounded-md transition-all #{@chart_period == period ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' : 'hover:bg-white dark:hover:bg-slate-700'}" %>
     <% end %>
   </div>
-</div>
+</header>
+
+<section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 glow-border mb-8">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Occurrences Over Time</h3>
+    <div class="flex items-center gap-2 text-xs text-slate-400">
+      <span class="w-2 h-2 rounded-full bg-primary"></span>
+      <span>Total Exceptions</span>
+    </div>
+  </div>
+  <div class="h-48">
+    <% if @chart_data.any? %>
+      <canvas id="overviewChart"></canvas>
+    <% else %>
+      <div class="flex items-center justify-center h-full text-slate-400 text-sm">No occurrences in this period</div>
+    <% end %>
+  </div>
+</section>
 
 <% if @chart_data.any? %>
 <%
@@ -51,168 +59,158 @@
       datasets: [{
         label: 'Occurrences',
         data: <%= @chart_data.values.to_json %>,
-        backgroundColor: 'rgba(6, 182, 212, 0.8)',
-        borderColor: 'rgb(6, 182, 212)',
-        borderWidth: 1
+        backgroundColor: 'rgba(34, 211, 238, 0.6)',
+        borderColor: '#22d3ee',
+        borderWidth: 1,
+        borderRadius: 4
       }]
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 },
+          grid: { color: 'rgba(148, 163, 184, 0.1)' }
+        },
+        x: {
+          grid: { display: false }
+        }
       }
     }
   });
 </script>
 <% end %>
 
-<div class="flex flex-col lg:flex-row gap-6">
+<div class="flex flex-col lg:flex-row gap-8">
   <!-- Sidebar -->
-  <div class="lg:w-64 flex-shrink-0">
-    <div class="bg-white shadow rounded-lg p-4">
-      <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Status</h3>
-      <ul class="space-y-1">
-        <li>
-          <%= link_to faultline.error_groups_path,
-              class: "block px-3 py-2 rounded-md text-sm #{params[:status].blank? ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}" do %>
-            All <span class="float-right"><%= @status_counts.values.sum %></span>
-          <% end %>
-        </li>
-        <li>
-          <%= link_to faultline.error_groups_path(status: "unresolved"),
-              class: "block px-3 py-2 rounded-md text-sm #{params[:status] == 'unresolved' ? 'bg-red-100 text-red-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}" do %>
-            Unresolved <span class="float-right"><%= @status_counts["unresolved"] || 0 %></span>
-          <% end %>
-        </li>
-        <li>
-          <%= link_to faultline.error_groups_path(status: "resolved"),
-              class: "block px-3 py-2 rounded-md text-sm #{params[:status] == 'resolved' ? 'bg-green-100 text-green-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}" do %>
-            Resolved <span class="float-right"><%= @status_counts["resolved"] || 0 %></span>
-          <% end %>
-        </li>
-        <li>
-          <%= link_to faultline.error_groups_path(status: "ignored"),
-              class: "block px-3 py-2 rounded-md text-sm #{params[:status] == 'ignored' ? 'bg-gray-200 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}" do %>
-            Ignored <span class="float-right"><%= @status_counts["ignored"] || 0 %></span>
-          <% end %>
-        </li>
-      </ul>
-
-      <% if @exception_classes.any? %>
-        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mt-6 mb-3">Exception Type</h3>
-        <ul class="space-y-1 max-h-48 overflow-y-auto">
-          <% @exception_classes.each do |exception_class| %>
-            <li>
-              <%= link_to faultline.error_groups_path(exception_class: exception_class, status: params[:status]),
-                  class: "block px-3 py-1 rounded-md text-xs truncate #{params[:exception_class] == exception_class ? 'bg-blue-100 text-blue-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}" do %>
-                <%= exception_class.split("::").last %>
-              <% end %>
-            </li>
-          <% end %>
-        </ul>
-      <% end %>
+  <aside class="w-full lg:w-64 space-y-8 flex-shrink-0">
+    <div class="space-y-4">
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest px-2">Status</h3>
+      <nav class="space-y-1">
+        <%= link_to faultline.error_groups_path,
+            class: "flex items-center justify-between px-3 py-2 rounded-lg transition-colors #{params[:status].blank? ? 'bg-slate-100 dark:bg-slate-800 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}" do %>
+          <span>All</span>
+          <span class="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300"><%= @status_counts.values.sum %></span>
+        <% end %>
+        <%= link_to faultline.error_groups_path(status: "unresolved"),
+            class: "flex items-center justify-between px-3 py-2 rounded-lg transition-colors #{params[:status] == 'unresolved' ? 'bg-slate-100 dark:bg-slate-800 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}" do %>
+          <span>Unresolved</span>
+          <span class="text-xs px-2 py-0.5 rounded"><%= @status_counts["unresolved"] || 0 %></span>
+        <% end %>
+        <%= link_to faultline.error_groups_path(status: "resolved"),
+            class: "flex items-center justify-between px-3 py-2 rounded-lg transition-colors #{params[:status] == 'resolved' ? 'bg-slate-100 dark:bg-slate-800 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}" do %>
+          <span>Resolved</span>
+          <span class="text-xs px-2 py-0.5 rounded"><%= @status_counts["resolved"] || 0 %></span>
+        <% end %>
+        <%= link_to faultline.error_groups_path(status: "ignored"),
+            class: "flex items-center justify-between px-3 py-2 rounded-lg transition-colors #{params[:status] == 'ignored' ? 'bg-slate-100 dark:bg-slate-800 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}" do %>
+          <span>Ignored</span>
+          <span class="text-xs px-2 py-0.5 rounded"><%= @status_counts["ignored"] || 0 %></span>
+        <% end %>
+      </nav>
     </div>
-  </div>
+
+    <% if @exception_classes.any? %>
+      <div class="space-y-4">
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest px-2">Exception Type</h3>
+        <div class="space-y-1 text-sm max-h-48 overflow-y-auto no-scrollbar">
+          <% @exception_classes.each do |exception_class| %>
+            <%= link_to faultline.error_groups_path(exception_class: exception_class, status: params[:status]),
+                class: "block px-3 py-2 rounded-lg truncate transition-colors #{params[:exception_class] == exception_class ? 'bg-slate-100 dark:bg-slate-800 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:text-primary'}" do %>
+              <%= exception_class.split("::").last %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </aside>
 
   <!-- Main content -->
-  <div class="flex-1">
-    <!-- Search and Sort -->
-    <div class="bg-white shadow rounded-lg mb-4 p-4">
-      <div class="flex flex-col sm:flex-row gap-4">
-        <%= form_with url: faultline.error_groups_path, method: :get, local: true, class: "flex-1" do %>
-          <%= hidden_field_tag :status, params[:status] if params[:status].present? %>
-          <%= hidden_field_tag :exception_class, params[:exception_class] if params[:exception_class].present? %>
-          <div class="relative">
-            <input type="text" name="q" value="<%= params[:q] %>"
-                   placeholder="Search errors..."
-                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm pl-10 py-2 border">
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
-              </svg>
-            </div>
-          </div>
-        <% end %>
-        <div class="flex gap-2">
-          <%= link_to "Recent", faultline.error_groups_path(status: params[:status], q: params[:q]),
-              class: "px-3 py-2 text-sm rounded-md #{params[:sort].blank? ? 'bg-cyan-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
-          <%= link_to "Frequent", faultline.error_groups_path(status: params[:status], q: params[:q], sort: "frequent"),
-              class: "px-3 py-2 text-sm rounded-md #{params[:sort] == 'frequent' ? 'bg-cyan-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
-          <%= link_to "Oldest", faultline.error_groups_path(status: params[:status], q: params[:q], sort: "oldest"),
-              class: "px-3 py-2 text-sm rounded-md #{params[:sort] == 'oldest' ? 'bg-cyan-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
-        </div>
+  <div class="flex-grow space-y-4">
+    <div class="flex flex-col sm:flex-row gap-4">
+      <%= form_with url: faultline.error_groups_path, method: :get, local: true, class: "relative flex-grow" do %>
+        <%= hidden_field_tag :status, params[:status] if params[:status].present? %>
+        <%= hidden_field_tag :exception_class, params[:exception_class] if params[:exception_class].present? %>
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+        <input type="text" name="q" value="<%= params[:q] %>"
+               placeholder="Search errors, paths, or messages..."
+               class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 pl-10 pr-4 py-2.5 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm outline-none">
+      <% end %>
+      <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700 self-start">
+        <%= link_to "Recent", faultline.error_groups_path(status: params[:status], q: params[:q]),
+            class: "px-4 py-1.5 text-xs font-semibold rounded-lg transition-all #{params[:sort].blank? ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' : 'text-slate-500 hover:bg-white dark:hover:bg-slate-700'}" %>
+        <%= link_to "Frequent", faultline.error_groups_path(status: params[:status], q: params[:q], sort: "frequent"),
+            class: "px-4 py-1.5 text-xs font-semibold rounded-lg transition-all #{params[:sort] == 'frequent' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' : 'text-slate-500 hover:bg-white dark:hover:bg-slate-700'}" %>
+        <%= link_to "Oldest", faultline.error_groups_path(status: params[:status], q: params[:q], sort: "oldest"),
+            class: "px-4 py-1.5 text-xs font-semibold rounded-lg transition-all #{params[:sort] == 'oldest' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' : 'text-slate-500 hover:bg-white dark:hover:bg-slate-700'}" %>
       </div>
     </div>
 
     <!-- Error list -->
-    <div class="bg-white shadow rounded-lg overflow-hidden">
+    <div class="space-y-4">
       <% if @error_groups.any? %>
-        <ul class="divide-y divide-gray-200">
-          <% @error_groups.each do |error| %>
-            <li class="hover:bg-gray-50">
-              <div class="px-4 py-4">
-                <div class="flex items-start justify-between">
-                  <div class="flex-1 min-w-0">
-                    <%= link_to faultline.error_group_path(error), class: "block" do %>
-                      <div class="flex items-center gap-2">
-                        <% if error.recently_reopened? %>
-                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Reopened</span>
-                        <% end %>
-                        <% case error.status %>
-                        <% when "unresolved" %>
-                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Unresolved</span>
-                        <% when "resolved" %>
-                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Resolved</span>
-                        <% when "ignored" %>
-                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Ignored</span>
-                        <% end %>
-                      </div>
-                      <p class="mt-1 text-sm font-medium text-gray-900"><%= error.exception_class %></p>
-                      <p class="mt-1 text-sm text-gray-500 truncate"><%= error.sanitized_message.truncate(100) %></p>
-                      <p class="mt-1 text-xs text-gray-400">
-                        <%= error.file_path %>:<%= error.line_number %>
-                      </p>
-                    <% end %>
-                  </div>
-                  <div class="ml-4 flex flex-col items-end gap-2">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      <%= error.occurrences_count %> occurrences
-                    </span>
-                    <span class="text-xs text-gray-400"><%= time_ago_in_words(error.last_seen_at) %> ago</span>
-                    <div class="flex gap-1">
-                      <% if error.status == "unresolved" %>
-                        <%= button_to "Resolve", faultline.resolve_error_group_path(error), method: :patch,
-                            class: "px-2 py-1 text-xs bg-cyan-100 text-cyan-700 rounded hover:bg-cyan-200" %>
-                        <%= button_to "Ignore", faultline.ignore_error_group_path(error), method: :patch,
-                            class: "px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200" %>
-                      <% elsif error.status == "resolved" %>
-                        <%= button_to "Unresolve", faultline.unresolve_error_group_path(error), method: :patch,
-                            class: "px-2 py-1 text-xs bg-violet-100 text-violet-700 rounded hover:bg-violet-200" %>
-                      <% elsif error.status == "ignored" %>
-                        <%= button_to "Unresolve", faultline.unresolve_error_group_path(error), method: :patch,
-                            class: "px-2 py-1 text-xs bg-violet-100 text-violet-700 rounded hover:bg-violet-200" %>
-                      <% end %>
-                    </div>
-                  </div>
-                </div>
+        <% @error_groups.each do |error| %>
+          <div class="group bg-white/50 dark:bg-slate-900/40 backdrop-blur-sm border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all p-5 rounded-xl flex flex-col md:flex-row gap-6">
+            <div class="flex-grow space-y-3">
+              <div class="flex items-center gap-3">
+                <% if error.recently_reopened? %>
+                  <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest bg-amber-500/10 text-amber-500 rounded border border-amber-500/20">Reopened</span>
+                <% end %>
+                <% case error.status %>
+                <% when "unresolved" %>
+                  <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest bg-rose-500/10 text-rose-500 rounded border border-rose-500/20">Unresolved</span>
+                <% when "resolved" %>
+                  <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-500 rounded border border-emerald-500/20">Resolved</span>
+                <% when "ignored" %>
+                  <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest bg-slate-500/10 text-slate-500 rounded border border-slate-500/20">Ignored</span>
+                <% end %>
+                <span class="text-xs text-slate-400"><%= time_ago_in_words(error.last_seen_at) %> ago</span>
               </div>
-            </li>
-          <% end %>
-        </ul>
+              <%= link_to faultline.error_group_path(error), class: "block" do %>
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors"><%= error.exception_class %></h2>
+                <p class="text-slate-600 dark:text-slate-400 mt-1 font-mono text-sm truncate"><%= error.sanitized_message.truncate(100) %></p>
+              <% end %>
+              <div class="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/50 w-fit px-2 py-1 rounded">
+                <span class="material-symbols-outlined text-sm">folder_open</span>
+                <span><%= error.file_path %>:<%= error.line_number %></span>
+              </div>
+            </div>
+            <div class="flex flex-col justify-between items-end min-w-[140px]">
+              <div class="text-right">
+                <div class="text-xl font-bold text-slate-900 dark:text-white"><%= error.occurrences_count %></div>
+                <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Occurrences</div>
+              </div>
+              <div class="flex gap-2 mt-4 md:mt-0">
+                <% if error.status == "unresolved" %>
+                  <%= button_to "Resolve", faultline.resolve_error_group_path(error), method: :patch,
+                      class: "px-4 py-2 text-xs font-bold text-primary border border-primary/20 hover:bg-primary/10 rounded-lg transition-all" %>
+                  <%= button_to "Ignore", faultline.ignore_error_group_path(error), method: :patch,
+                      class: "px-4 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-all" %>
+                <% elsif error.status == "resolved" %>
+                  <%= button_to "Unresolve", faultline.unresolve_error_group_path(error), method: :patch,
+                      class: "px-4 py-2 text-xs font-bold text-violet-400 border border-violet-400/20 hover:bg-violet-400/10 rounded-lg transition-all" %>
+                <% elsif error.status == "ignored" %>
+                  <%= button_to "Unresolve", faultline.unresolve_error_group_path(error), method: :patch,
+                      class: "px-4 py-2 text-xs font-bold text-violet-400 border border-violet-400/20 hover:bg-violet-400/10 rounded-lg transition-all" %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
 
         <% if @total_pages > 1 %>
-          <div class="px-4 py-3 bg-gray-50 border-t border-gray-200">
+          <div class="pt-8">
             <%= render "faultline/shared/pagination", page: @page, total_pages: @total_pages %>
           </div>
         <% end %>
       <% else %>
-        <div class="px-4 py-12 text-center">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <h3 class="mt-2 text-sm font-medium text-gray-900">No errors found</h3>
-          <p class="mt-1 text-sm text-gray-500">
+        <div class="bg-white/50 dark:bg-slate-900/40 backdrop-blur-sm border border-slate-200 dark:border-slate-800 rounded-xl p-12 text-center">
+          <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-600 mb-4 block">check_circle</span>
+          <h3 class="text-lg font-medium text-slate-900 dark:text-white mb-1">No errors found</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400">
             <% if params[:q].present? %>
               No errors match your search criteria.
             <% else %>
