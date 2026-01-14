@@ -3,6 +3,7 @@
 module Faultline
   class Middleware
     THREAD_LOCAL_KEY = :faultline_captured_locals
+    THREAD_APP_BINDING_KEY = :faultline_last_app_binding
 
     def initialize(app)
       @app = app
@@ -22,39 +23,97 @@ module Faultline
     private
 
     def with_local_variable_capture
-      tracepoint = TracePoint.new(:raise) do |tp|
+      # Track the most recent app-code binding on every line execution.
+      # This allows us to capture locals even when exceptions originate in gem code.
+      line_tracer = TracePoint.new(:line) do |tp|
+        track_app_binding(tp)
+      end
+
+      # When an exception is raised, capture locals from either:
+      # 1. The raise site (if in app code), or
+      # 2. The last app-code line executed (if raise is in gem code)
+      raise_tracer = TracePoint.new(:raise) do |tp|
         capture_local_variables(tp)
       end
 
-      tracepoint.enable { yield }
+      line_tracer.enable do
+        raise_tracer.enable { yield }
+      end
     end
 
-    def capture_local_variables(tp)
-      # Only capture from app code, not from gems
+    def track_app_binding(tp)
       path = tp.path.to_s
       return if path.include?("/gems/") || path.include?("/ruby/")
-      return if path.start_with?("<") # internal Ruby paths like <internal:
+      return if path.start_with?("<")
 
       binding = tp.binding
       return unless binding
 
+      # Store the current app-code binding (overwritten on each line)
+      Thread.current[THREAD_APP_BINDING_KEY] = {
+        binding: binding,
+        path: path,
+        lineno: tp.lineno,
+        method_id: tp.method_id
+      }
+    rescue StandardError
+      # Silently ignore tracking errors to avoid performance impact
+    end
+
+    def capture_local_variables(tp)
+      path = tp.path.to_s
+      in_app_code = !path.include?("/gems/") && !path.include?("/ruby/") && !path.start_with?("<")
+
+      if in_app_code
+        # Exception raised in app code - capture from the raise site
+        capture_from_tracepoint(tp)
+      else
+        # Exception raised in gem code - use the last app-code binding
+        capture_from_last_app_binding
+      end
+    rescue StandardError => e
+      Rails.logger.debug "[Faultline] Failed to capture locals: #{e.message}"
+    end
+
+    def capture_from_tracepoint(tp)
+      binding = tp.binding
+      return unless binding
+
+      locals = extract_locals_from_binding(binding)
+
+      Thread.current[THREAD_LOCAL_KEY] = {
+        locals: locals,
+        path: tp.path.to_s,
+        lineno: tp.lineno,
+        method_id: tp.method_id
+      }
+    end
+
+    def capture_from_last_app_binding
+      app_binding_data = Thread.current[THREAD_APP_BINDING_KEY]
+      return unless app_binding_data
+
+      binding = app_binding_data[:binding]
+      return unless binding
+
+      locals = extract_locals_from_binding(binding)
+
+      Thread.current[THREAD_LOCAL_KEY] = {
+        locals: locals,
+        path: app_binding_data[:path],
+        lineno: app_binding_data[:lineno],
+        method_id: app_binding_data[:method_id]
+      }
+    end
+
+    def extract_locals_from_binding(binding)
       locals = {}
       binding.local_variables.each do |var|
         locals[var] = binding.local_variable_get(var)
       rescue StandardError
         locals[var] = "[Error accessing variable]"
       end
-
-      # Store the captured locals - we keep only the most recent capture
-      # since re-raises will capture again
-      Thread.current[THREAD_LOCAL_KEY] = {
-        locals: locals,
-        path: path,
-        lineno: tp.lineno,
-        method_id: tp.method_id
-      }
-    rescue StandardError => e
-      Rails.logger.debug "[Faultline] Failed to capture locals: #{e.message}"
+      locals
     end
 
     def captured_locals
@@ -66,6 +125,7 @@ module Faultline
 
     def clear_captured_locals
       Thread.current[THREAD_LOCAL_KEY] = nil
+      Thread.current[THREAD_APP_BINDING_KEY] = nil
     end
 
     def track_exception(exception, env)

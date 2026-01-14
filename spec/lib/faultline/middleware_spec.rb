@@ -47,6 +47,7 @@ RSpec.describe Faultline::Middleware do
       it "clears captured locals after request" do
         expect { middleware.call(env) }.to raise_error(StandardError)
         expect(Thread.current[described_class::THREAD_LOCAL_KEY]).to be_nil
+        expect(Thread.current[described_class::THREAD_APP_BINDING_KEY]).to be_nil
       end
     end
   end
@@ -169,47 +170,147 @@ RSpec.describe Faultline::Middleware do
   end
 
   describe "#capture_local_variables" do
-    it "stores captured locals in thread-local storage" do
+    after do
+      Thread.current[described_class::THREAD_LOCAL_KEY] = nil
+      Thread.current[described_class::THREAD_APP_BINDING_KEY] = nil
+    end
+
+    context "when exception raised in app code" do
+      it "captures locals from the raise site" do
+        tracepoint = double("TracePoint",
+          path: "/app/models/user.rb",
+          lineno: 42,
+          method_id: :save,
+          binding: binding
+        )
+        middleware.send(:capture_local_variables, tracepoint)
+        captured = Thread.current[described_class::THREAD_LOCAL_KEY]
+        expect(captured).to be_a(Hash)
+        expect(captured[:path]).to eq("/app/models/user.rb")
+        expect(captured[:lineno]).to eq(42)
+        expect(captured[:method_id]).to eq(:save)
+      end
+    end
+
+    context "when exception raised in gem code" do
+      it "captures locals from the last app-code binding" do
+        # Simulate having tracked an app binding before the gem exception
+        app_binding = binding
+        local_var_for_test = "test_value"
+        Thread.current[described_class::THREAD_APP_BINDING_KEY] = {
+          binding: app_binding,
+          path: "/app/controllers/users_controller.rb",
+          lineno: 190,
+          method_id: :create
+        }
+
+        # Now simulate an exception raised in gem code
+        gem_tracepoint = double("TracePoint", path: "/gems/activerecord/lib/base.rb")
+        middleware.send(:capture_local_variables, gem_tracepoint)
+
+        captured = Thread.current[described_class::THREAD_LOCAL_KEY]
+        expect(captured).to be_a(Hash)
+        expect(captured[:path]).to eq("/app/controllers/users_controller.rb")
+        expect(captured[:lineno]).to eq(190)
+        expect(captured[:method_id]).to eq(:create)
+        expect(captured[:locals]).to include(:app_binding, :local_var_for_test)
+      end
+
+      it "does not capture if no app binding was tracked" do
+        gem_tracepoint = double("TracePoint", path: "/gems/activerecord/lib/base.rb")
+        middleware.send(:capture_local_variables, gem_tracepoint)
+        expect(Thread.current[described_class::THREAD_LOCAL_KEY]).to be_nil
+      end
+    end
+  end
+
+  describe "#track_app_binding" do
+    after do
+      Thread.current[described_class::THREAD_APP_BINDING_KEY] = nil
+    end
+
+    it "stores app-code binding in thread-local storage" do
       tracepoint = double("TracePoint",
         path: "/app/models/user.rb",
         lineno: 42,
         method_id: :save,
         binding: binding
       )
-      middleware.send(:capture_local_variables, tracepoint)
-      captured = Thread.current[described_class::THREAD_LOCAL_KEY]
-      expect(captured).to be_a(Hash)
-      expect(captured[:path]).to eq("/app/models/user.rb")
-      expect(captured[:lineno]).to eq(42)
-      expect(captured[:method_id]).to eq(:save)
-    ensure
-      Thread.current[described_class::THREAD_LOCAL_KEY] = nil
+      middleware.send(:track_app_binding, tracepoint)
+      tracked = Thread.current[described_class::THREAD_APP_BINDING_KEY]
+      expect(tracked).to be_a(Hash)
+      expect(tracked[:path]).to eq("/app/models/user.rb")
+      expect(tracked[:lineno]).to eq(42)
+      expect(tracked[:binding]).to be_a(Binding)
     end
 
     it "ignores gem paths" do
       tracepoint = double("TracePoint", path: "/gems/activesupport/lib/support.rb")
-      middleware.send(:capture_local_variables, tracepoint)
-      expect(Thread.current[described_class::THREAD_LOCAL_KEY]).to be_nil
+      middleware.send(:track_app_binding, tracepoint)
+      expect(Thread.current[described_class::THREAD_APP_BINDING_KEY]).to be_nil
     end
 
     it "ignores ruby internal paths" do
       tracepoint = double("TracePoint", path: "/ruby/3.2.0/lib/stdlib.rb")
-      middleware.send(:capture_local_variables, tracepoint)
-      expect(Thread.current[described_class::THREAD_LOCAL_KEY]).to be_nil
+      middleware.send(:track_app_binding, tracepoint)
+      expect(Thread.current[described_class::THREAD_APP_BINDING_KEY]).to be_nil
     end
 
     it "ignores internal paths starting with <" do
       tracepoint = double("TracePoint", path: "<internal:marshal>")
-      middleware.send(:capture_local_variables, tracepoint)
-      expect(Thread.current[described_class::THREAD_LOCAL_KEY]).to be_nil
+      middleware.send(:track_app_binding, tracepoint)
+      expect(Thread.current[described_class::THREAD_APP_BINDING_KEY]).to be_nil
+    end
+
+    it "overwrites previous binding on each line" do
+      tracepoint1 = double("TracePoint", path: "/app/models/user.rb", lineno: 10, method_id: :foo, binding: binding)
+      tracepoint2 = double("TracePoint", path: "/app/models/user.rb", lineno: 20, method_id: :foo, binding: binding)
+
+      middleware.send(:track_app_binding, tracepoint1)
+      expect(Thread.current[described_class::THREAD_APP_BINDING_KEY][:lineno]).to eq(10)
+
+      middleware.send(:track_app_binding, tracepoint2)
+      expect(Thread.current[described_class::THREAD_APP_BINDING_KEY][:lineno]).to eq(20)
     end
   end
 
   describe "#clear_captured_locals" do
-    it "clears thread-local storage" do
+    it "clears both thread-local storage keys" do
       Thread.current[described_class::THREAD_LOCAL_KEY] = { locals: {} }
+      Thread.current[described_class::THREAD_APP_BINDING_KEY] = { binding: binding }
       middleware.send(:clear_captured_locals)
       expect(Thread.current[described_class::THREAD_LOCAL_KEY]).to be_nil
+      expect(Thread.current[described_class::THREAD_APP_BINDING_KEY]).to be_nil
+    end
+  end
+
+  describe "integration: gem-originated exceptions" do
+    before do
+      allow(Faultline).to receive(:track)
+      allow(Faultline.configuration).to receive(:ignored_exceptions).and_return([])
+      allow(Faultline.configuration).to receive(:middleware_ignore_paths).and_return([])
+      allow(Faultline.configuration).to receive(:ignored_user_agents).and_return([])
+    end
+
+    it "captures local variables from app code when exception raised in gem" do
+      captured_context = nil
+      allow(Faultline).to receive(:track) do |_exception, context|
+        captured_context = context
+      end
+
+      # Simulate app code that calls a gem method which raises
+      app = lambda do |_env|
+        my_local_var = { key: "value" }
+        another_var = 42
+        # This simulates calling a gem method that raises internally
+        # In reality, the TracePoint would track lines up to this point
+        raise StandardError, "Gem error"
+      end
+
+      middleware = described_class.new(app)
+      expect { middleware.call(env) }.to raise_error(StandardError)
+
+      expect(captured_context[:local_variables]).to be_a(Hash)
     end
   end
 end
