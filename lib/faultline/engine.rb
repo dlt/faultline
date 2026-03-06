@@ -14,6 +14,12 @@ module Faultline
       Faultline.configure {} unless Faultline.configuration
     end
 
+    initializer "faultline.database", after: :load_config_initializers do
+      ActiveSupport.on_load(:active_record) do
+        Faultline::ApplicationRecord.configure_database_connection!
+      end
+    end
+
     initializer "faultline.middleware", after: :load_config_initializers do |app|
       if Faultline.configuration&.enable_middleware
         app.middleware.use Faultline::Middleware

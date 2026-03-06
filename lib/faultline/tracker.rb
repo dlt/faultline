@@ -74,7 +74,7 @@ module Faultline
         #   Faultline::Tracker.instance_variable_set(:@tables_exist, nil)
         return @tables_exist if instance_variable_defined?(:@tables_exist)
 
-        @tables_exist = ActiveRecord::Base.connection.table_exists?("faultline_error_groups")
+        @tables_exist = Faultline::ApplicationRecord.connection.table_exists?("faultline_error_groups")
       rescue
         false
       end

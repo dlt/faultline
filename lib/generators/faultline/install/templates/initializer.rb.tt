@@ -228,6 +228,21 @@ Faultline.configure do |config|
   # }
 
   # =============================================================================
+  # Dedicated Database (Optional)
+  # =============================================================================
+
+  # Use a dedicated database for Faultline tables.
+  # This keeps error tracking data separate from your application data,
+  # making backups more manageable and avoiding connection pool contention.
+  #
+  # To set up:
+  #   1. Run: rails generate faultline:database
+  #   2. Add database config to config/database.yml
+  #   3. Run: rails db:create:faultline && rails db:migrate:faultline
+  #
+  # config.database_key = :faultline
+
+  # =============================================================================
   # Application Performance Monitoring (APM)
   # =============================================================================
 

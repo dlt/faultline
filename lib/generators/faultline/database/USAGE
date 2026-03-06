@@ -1,0 +1,17 @@
+Description:
+    Configure Faultline to use a dedicated database instead of the primary
+    application database. This keeps error tracking and APM data separate
+    from your business data.
+
+Example:
+    rails generate faultline:database
+
+    This will:
+    - Show instructions for adding database configuration to database.yml
+    - Update config/initializers/faultline.rb with database_key setting
+
+Options:
+    --database-key  The database key to use (default: "faultline")
+
+Example with custom key:
+    rails generate faultline:database --database-key=errors

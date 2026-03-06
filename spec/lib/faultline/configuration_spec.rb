@@ -58,6 +58,22 @@ RSpec.describe Faultline::Configuration do
     it "sets apm_profile_mode to :cpu" do
       expect(config.apm_profile_mode).to eq(:cpu)
     end
+
+    it "sets database_key to nil" do
+      expect(config.database_key).to be_nil
+    end
+  end
+
+  describe "#use_dedicated_database?" do
+    it "returns false when database_key is nil" do
+      config.database_key = nil
+      expect(config.use_dedicated_database?).to be false
+    end
+
+    it "returns true when database_key is set" do
+      config.database_key = :faultline
+      expect(config.use_dedicated_database?).to be true
+    end
   end
 
   describe "#add_notifier" do
