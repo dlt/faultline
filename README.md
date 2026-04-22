@@ -136,11 +136,13 @@ Emails are sent asynchronously via `deliver_later`, so Active Job must be config
 #   telegram:
 #     bot_token: "your-bot-token"
 #     chat_id: "your-chat-id"
+#     message_thread_id: 123 # optional, for forum topics
 
 config.add_notifier(
   Faultline::Notifiers::Telegram.new(
     bot_token: Rails.application.credentials.dig(:faultline, :telegram, :bot_token),
-    chat_id: Rails.application.credentials.dig(:faultline, :telegram, :chat_id)
+    chat_id: Rails.application.credentials.dig(:faultline, :telegram, :chat_id),
+    message_thread_id: Rails.application.credentials.dig(:faultline, :telegram, :message_thread_id)
   )
 )
 ```
