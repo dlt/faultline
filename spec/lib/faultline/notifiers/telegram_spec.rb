@@ -5,7 +5,14 @@ require "rails_helper"
 RSpec.describe Faultline::Notifiers::Telegram do
   let(:bot_token) { "123456789:ABCDEF" }
   let(:chat_id) { "-1001234567890" }
-  let(:notifier) { described_class.new(bot_token: bot_token, chat_id: chat_id) }
+  let(:message_thread_id) { nil }
+  let(:notifier) do
+    described_class.new(
+      bot_token: bot_token,
+      chat_id: chat_id,
+      message_thread_id: message_thread_id
+    )
+  end
   let(:error_group) { create(:error_group) }
   let(:occurrence) { create(:error_occurrence, error_group: error_group) }
 
@@ -16,6 +23,14 @@ RSpec.describe Faultline::Notifiers::Telegram do
 
     it "sets chat_id" do
       expect(notifier.instance_variable_get(:@chat_id)).to eq(chat_id)
+    end
+
+    context "with message_thread_id" do
+      let(:message_thread_id) { 123 }
+
+      it "sets message_thread_id" do
+        expect(notifier.instance_variable_get(:@message_thread_id)).to eq(message_thread_id)
+      end
     end
   end
 
@@ -29,6 +44,28 @@ RSpec.describe Faultline::Notifiers::Telegram do
     it "sends message via Telegram API" do
       expect(Net::HTTP).to receive(:post_form).and_return(response_double)
       notifier.call(error_group, occurrence)
+    end
+
+    it "omits message_thread_id by default" do
+      notifier.call(error_group, occurrence)
+
+      expect(Net::HTTP).to have_received(:post_form).with(
+        instance_of(URI::HTTPS),
+        hash_excluding(:message_thread_id)
+      )
+    end
+
+    context "with message_thread_id" do
+      let(:message_thread_id) { 123 }
+
+      it "sends message_thread_id to Telegram API" do
+        notifier.call(error_group, occurrence)
+
+        expect(Net::HTTP).to have_received(:post_form).with(
+          instance_of(URI::HTTPS),
+          hash_including(message_thread_id: message_thread_id)
+        )
+      end
     end
 
     context "when request fails" do

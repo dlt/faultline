@@ -85,15 +85,18 @@ Faultline.configure do |config|
   # --- Telegram Notifier ---
   # Store credentials in Rails credentials:
   #   rails credentials:edit
-  #   telegram:
-  #     bot_token: "your-bot-token"
-  #     chat_id: "your-chat-id"
+  #   faultline:
+  #     telegram:
+  #       bot_token: "your-bot-token"
+  #       chat_id: "your-chat-id"
+  #       message_thread_id: 123 # optional, for forum topics
   #
   # if Rails.application.credentials.dig(:faultline, :telegram, :bot_token)
   #   config.add_notifier(
   #     Faultline::Notifiers::Telegram.new(
   #       bot_token: Rails.application.credentials.dig(:faultline, :telegram, :bot_token),
-  #       chat_id: Rails.application.credentials.dig(:faultline, :telegram, :chat_id)
+  #       chat_id: Rails.application.credentials.dig(:faultline, :telegram, :chat_id),
+  #       message_thread_id: Rails.application.credentials.dig(:faultline, :telegram, :message_thread_id)
   #     )
   #   )
   # end

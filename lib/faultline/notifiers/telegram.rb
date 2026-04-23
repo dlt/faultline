@@ -9,10 +9,11 @@ module Faultline
     class Telegram < Base
       BASE_URL = "https://api.telegram.org/bot"
 
-      def initialize(bot_token:, chat_id:, **options)
+      def initialize(bot_token:, chat_id:, message_thread_id: nil, **options)
         super(options)
         @bot_token = bot_token
         @chat_id = chat_id
+        @message_thread_id = message_thread_id
       end
 
       def call(error_group, error_occurrence)
@@ -60,12 +61,15 @@ module Faultline
       def send_message(text)
         uri = URI("#{BASE_URL}#{@bot_token}/sendMessage")
 
-        response = Net::HTTP.post_form(uri, {
+        payload = {
           chat_id: @chat_id,
           text: text,
           parse_mode: "HTML",
           disable_web_page_preview: "true"
-        })
+        }
+        payload[:message_thread_id] = @message_thread_id if @message_thread_id
+
+        response = Net::HTTP.post_form(uri, payload)
 
         unless response.is_a?(Net::HTTPSuccess)
           Rails.logger.error "[Faultline::Telegram] API error: #{response.body}"
