@@ -118,8 +118,26 @@ Faultline.configure do |config|
   #   )
   # end
 
+  # --- Discord Notifier ---
+  # Store webhook URL in Rails credentials:
+  #   rails credentials:edit
+  #   faultline:
+  #     discord:
+  #       webhook_url: "https://discord.com/api/webhooks/..."
+  #
+  # if Rails.application.credentials.dig(:faultline, :discord, :webhook_url)
+  #   config.add_notifier(
+  #     Faultline::Notifiers::Discord.new(
+  #       webhook_url: Rails.application.credentials.dig(:faultline, :discord, :webhook_url),
+  #       username: "Faultline",
+  #       avatar_url: nil,         # optional, overrides the webhook's avatar
+  #       mention: nil             # optional, e.g. "<@&ROLE_ID>" or "@everyone"
+  #     )
+  #   )
+  # end
+
   # --- Generic Webhook Notifier ---
-  # For custom integrations (PagerDuty, Opsgenie, Discord, etc.)
+  # For custom integrations (PagerDuty, Opsgenie, etc.)
   #
   # config.add_notifier(
   #   Faultline::Notifiers::Webhook.new(

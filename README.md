@@ -21,7 +21,7 @@ A self-hosted error tracking engine for Rails 8+ applications. Track errors, get
 - **Auto-Reopen** - Resolved errors automatically reopen when they recur
 - **GitHub Integration** - Create GitHub issues directly from errors with full context
 - **Rate Limiting** - Configurable cooldown prevents notification spam during error storms
-- **Pluggable Notifiers** - Telegram, Slack, Email (ActionMailer or Resend), webhooks, or build your own
+- **Pluggable Notifiers** - Telegram, Slack, Discord, Email (ActionMailer or Resend), webhooks, or build your own
 - **Standalone Dashboard** - Clean Tailwind UI with interactive charts and time-range zooming
 - **Configurable Authentication** - Integrate with Devise, Warden, or custom auth
 - **Request Context** - Capture URL, params, headers, user info, and custom data
@@ -158,6 +158,26 @@ config.add_notifier(
   )
 )
 ```
+
+#### Discord
+
+```ruby
+# Store in credentials: rails credentials:edit
+# faultline:
+#   discord:
+#     webhook_url: "https://discord.com/api/webhooks/..."
+
+config.add_notifier(
+  Faultline::Notifiers::Discord.new(
+    webhook_url: Rails.application.credentials.dig(:faultline, :discord, :webhook_url),
+    username: "Faultline",                  # optional, overrides webhook default
+    avatar_url: "https://example.com/a.png", # optional
+    mention: "<@&ROLE_ID>"                  # optional, e.g. "<@USER_ID>" or "@everyone"
+  )
+)
+```
+
+The `mention` string is sent as Discord `content` so the channel actually pings the role/user — useful for production alerting.
 
 #### Custom Webhook
 
