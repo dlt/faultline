@@ -1,92 +1,89 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
 
 ## About
 
-Faultline is a self-hosted error tracking Rails engine for Rails 8+ applications. It provides automatic error capture, smart grouping, local variable inspection, notifications (Telegram/Slack/Email/Webhook), GitHub integration, and basic APM.
+Faultline is a self-hosted error tracking Rails engine for Rails 8+ apps. It captures errors (with local variables), groups them by fingerprint, sends notifications, can open GitHub issues, and ships a basic APM. It is distributed as a gem and mounted into a host app at `/faultline`.
+
+Requires Ruby >= 3.2 and Rails >= 8.0 (see `faultline.gemspec`).
 
 ## Commands
 
 ```bash
-# Install dependencies
-bundle install
-
-# Run all tests
-bundle exec rspec
-
-# Run a single test file
-bundle exec rspec spec/lib/faultline/tracker_spec.rb
-
-# Run a specific test by line number
-bundle exec rspec spec/lib/faultline/tracker_spec.rb:25
+bundle install                                    # install dependencies
+bundle exec rspec                                 # run all tests
+bundle exec rspec spec/lib/faultline/tracker_spec.rb       # single file
+bundle exec rspec spec/lib/faultline/tracker_spec.rb:25    # single example
 ```
+
+Tests run against the dummy Rails app in `spec/dummy/` with SQLite. Factories live in `spec/factories/`, shared helpers in `spec/support/` and `spec/helpers/`.
 
 ## Architecture
 
-### Rails Engine Structure
+### Layout
 
-This is a mountable Rails engine. Key components:
+- `lib/faultline.rb` — top-level module. Provides `Faultline.configure`, `Faultline.track(exception, context)`, and `Faultline.notify(group, occurrence)`.
+- `lib/faultline/engine.rb` — Rails engine. Initializers wire up middleware, the Rails error subscriber, the APM collector, and assets. Warns at boot if `authenticate_with` is unset in production.
+- `lib/faultline/configuration.rb` — single source of truth for config options and defaults.
+- `lib/faultline/tracker.rb` — creates/updates `ErrorGroup` + `ErrorOccurrence` and triggers notifications. **`Tracker.should_track?` is the authoritative filter** for exception class and user agent rules; middleware only handles path-based ignores.
+- `lib/faultline/middleware.rb` — Rack middleware. Uses `TracePoint` (`:line` + `:raise`) to capture local variables, including when the exception originates inside a gem (falls back to the last app-code binding).
+- `lib/faultline/error_subscriber.rb` — subscribes to `Rails.error` so exceptions reported via `Rails.error.report` are captured even when middleware is bypassed. Opt-in via `register_error_subscriber`.
+- `lib/faultline/variable_serializer.rb` — safely serializes captured locals for storage.
+- `lib/faultline/sql_time_grouping.rb` — adapter-aware SQL fragments for time-bucketed aggregation (PostgreSQL / MySQL / SQLite) used by the dashboard charts.
+- `lib/faultline/github_issue_creator.rb` — creates GitHub issues from an `ErrorGroup` (gated by `github_configured?`).
+- `lib/faultline/notifiers/` — `Base` defines `should_notify?` / `format_message`; concrete notifiers: `Telegram`, `Slack`, `Webhook`, `Resend`, `Email`.
+- `lib/faultline/apm/` — `Collector`, `SpanCollector`, `ProfileCollector`, `SpeedscopeConverter`, and `instrumenters/` (SQL, view, HTTP, Redis). Required and started only when `enable_apm` is true.
+- `app/models/faultline/` — `ErrorGroup`, `ErrorOccurrence`, `ErrorContext`, `RequestTrace`, `RequestProfile`, plus `ApplicationRecord`.
+- `app/controllers/faultline/` — dashboard controllers: `error_groups`, `error_occurrences`, `performance`, `traces`. All inherit from `Faultline::ApplicationController`, which applies `authenticate_with` / `authorize_with`.
+- `config/routes.rb` — engine routes; mounted by the host at `/faultline`.
 
-- **Entry point**: `lib/faultline.rb` - loads all components and provides `Faultline.track()` and `Faultline.configure`
-- **Engine**: `lib/faultline/engine.rb` - registers middleware, error subscriber, and APM collector via Rails initializers
-- **Routes**: `config/routes.rb` - mounts at `/faultline` with error_groups, error_occurrences, performance, and traces resources
-
-### Error Tracking Flow
-
-```
-Exception raised
-    ↓
-Middleware (lib/faultline/middleware.rb) catches exception
-    ↓
-TracePoint captures local variables at raise site
-    ↓
-Tracker (lib/faultline/tracker.rb) creates/updates ErrorGroup and ErrorOccurrence
-    ↓
-Notifiers called if notification rules match
-```
-
-The middleware uses `TracePoint` on `:line` and `:raise` events to capture local variables even when exceptions originate in gem code.
-
-### APM Flow
+### Error tracking flow
 
 ```
-process_action.action_controller (Rails notification)
-    ↓
-Collector (lib/faultline/apm/collector.rb) subscribes to events
-    ↓
-SpanCollector captures SQL, view, HTTP, Redis spans
-    ↓
-RequestTrace stored in database
+Exception
+  ├── Rack middleware (enable_middleware, default on)
+  │     TracePoint captures locals → Faultline.track
+  └── Rails.error.report → ErrorSubscriber (register_error_subscriber, opt-in)
+                              → Faultline.track
+                                    ↓
+                       Tracker.should_track? (class / user-agent filters)
+                                    ↓
+                  ErrorGroup (find/create by fingerprint) + ErrorOccurrence
+                                    ↓
+                       Faultline.notify → matching notifiers
 ```
 
-APM is opt-in (`config.enable_apm = true`) and uses `ActiveSupport::Notifications`.
+`ErrorGroup#last_notified_at` is bumped via `update_column` to skip callbacks and `updated_at` (cooldown bookkeeping should not look like activity).
 
-### Models
+### APM flow
 
-- `Faultline::ErrorGroup` - grouped errors by fingerprint (class + message + location)
-- `Faultline::ErrorOccurrence` - individual error instances with backtrace, request data, local variables
-- `Faultline::ErrorContext` - custom key-value context data
-- `Faultline::RequestTrace` - APM trace with timing, spans, status
-- `Faultline::RequestProfile` - optional Vernier profiler data
+```
+process_action.action_controller (ActiveSupport::Notifications)
+    ↓
+Apm::Collector + SpanCollector (SQL/view/HTTP/Redis instrumenters)
+    ↓
+RequestTrace (+ optional RequestProfile via Vernier)
+```
 
-### Notifiers
-
-All in `lib/faultline/notifiers/`:
-- `Base` - abstract base class with `should_notify?` and `format_message`
-- `Telegram`, `Slack`, `Webhook`, `Resend`, `Email` - concrete implementations
+APM is opt-in (`enable_apm = true`). Profiling is a further opt-in (`apm_enable_profiling`).
 
 ### Configuration
 
-All configuration options in `lib/faultline/configuration.rb`. Key options:
-- `authenticate_with` - lambda for dashboard auth
-- `enable_middleware` - error capture (default: true)
-- `enable_apm` - APM tracking (default: false)
-- `notification_cooldown` - rate limiting for notifications
-- `notification_rules` - when to notify (first occurrence, reopen, thresholds)
+All options and defaults live in `lib/faultline/configuration.rb`. Common ones:
 
-## Testing
+- `authenticate_with` / `authorize_with` — dashboard auth lambdas.
+- `enable_middleware` (default `true`), `register_error_subscriber` (default `false`).
+- `ignored_exceptions`, `ignored_user_agents`, `middleware_ignore_paths`.
+- `notifiers`, `notification_rules`, `notification_cooldown` (default 5 minutes).
+- `sanitize_fields`, `filter_parameters` — merged with `Rails.application.config.filter_parameters` via `resolved_filter_parameters`.
+- `retention_days` (errors), `apm_retention_days`.
+- `github_repo`, `github_token`, `github_labels` — gate `github_configured?`.
+- `enable_apm`, `apm_sample_rate`, `apm_capture_spans`, `apm_enable_profiling`, `apm_profile_*`.
 
-Tests use RSpec with a dummy Rails app in `spec/dummy/`. FactoryBot factories are in `spec/factories/`.
+## Conventions
 
-Request specs are in `spec/requests/`, model specs in `spec/models/`, lib specs in `spec/lib/`.
+- Everything is namespaced under `Faultline::` (engine uses `isolate_namespace`).
+- All Ruby files start with `# frozen_string_literal: true`.
+- Use `Rails.logger.error`/`debug` with a `[Faultline]` prefix for engine-side logs.
+- New tests go alongside existing ones: `spec/lib/...` for plain Ruby, `spec/models/...` for models, `spec/requests/...` for controllers.
