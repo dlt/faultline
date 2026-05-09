@@ -34,7 +34,10 @@ module Faultline
                   :apm_enable_profiling,
                   :apm_profile_sample_rate,
                   :apm_profile_interval,
-                  :apm_profile_mode
+                  :apm_profile_mode,
+                  :mcp_enabled,
+                  :mcp_tokens,
+                  :mcp_readonly
 
     def initialize
       @user_class = "User"
@@ -79,6 +82,13 @@ module Faultline
       @apm_profile_sample_rate = 0.1
       @apm_profile_interval = 1000
       @apm_profile_mode = :cpu
+      @mcp_enabled = false
+      @mcp_tokens = []
+      @mcp_readonly = true
+    end
+
+    def mcp_configured?
+      @mcp_enabled && @mcp_tokens.any?
     end
 
     def github_configured?

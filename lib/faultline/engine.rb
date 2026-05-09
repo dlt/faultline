@@ -48,6 +48,10 @@ module Faultline
       if Faultline.configuration&.authenticate_with.nil? && Rails.env.production?
         Rails.logger.warn "[Faultline] No authentication configured. Dashboard is publicly accessible."
       end
+
+      if Faultline.configuration&.mcp_enabled && Faultline.configuration.mcp_tokens.empty?
+        Rails.logger.warn "[Faultline] MCP is enabled but no mcp_tokens are configured. The /faultline/mcp endpoint will reject all requests."
+      end
     end
   end
 end

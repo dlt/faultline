@@ -58,6 +58,38 @@ RSpec.describe Faultline::Configuration do
     it "sets apm_profile_mode to :cpu" do
       expect(config.apm_profile_mode).to eq(:cpu)
     end
+
+    it "sets mcp_enabled to false" do
+      expect(config.mcp_enabled).to be false
+    end
+
+    it "sets mcp_tokens to empty array" do
+      expect(config.mcp_tokens).to eq([])
+    end
+
+    it "sets mcp_readonly to true" do
+      expect(config.mcp_readonly).to be true
+    end
+  end
+
+  describe "#mcp_configured?" do
+    it "returns false when mcp_enabled is false" do
+      config.mcp_enabled = false
+      config.mcp_tokens = ["secret"]
+      expect(config.mcp_configured?).to be false
+    end
+
+    it "returns false when mcp_tokens is empty" do
+      config.mcp_enabled = true
+      config.mcp_tokens = []
+      expect(config.mcp_configured?).to be false
+    end
+
+    it "returns true when both are set" do
+      config.mcp_enabled = true
+      config.mcp_tokens = ["secret"]
+      expect(config.mcp_configured?).to be true
+    end
   end
 
   describe "#add_notifier" do
