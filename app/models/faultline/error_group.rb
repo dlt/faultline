@@ -38,22 +38,22 @@ module Faultline
       def find_or_create_from_exception(exception, fingerprint_context: {})
         fingerprint = generate_fingerprint(exception, fingerprint_context)
 
-        error_group = find_or_create_by(fingerprint: fingerprint) do |group|
-          group.exception_class = exception.class.name
-          group.sanitized_message = sanitize_message(exception.message)
-          group.file_path, group.line_number, group.method_name = extract_location(exception)
-          group.first_seen_at = Time.current
-          group.last_seen_at = Time.current
-          group.occurrences_count = 0
+        error_group = begin
+          find_or_create_by(fingerprint: fingerprint) do |group|
+            group.exception_class = exception.class.name
+            group.sanitized_message = sanitize_message(exception.message)
+            group.file_path, group.line_number, group.method_name = extract_location(exception)
+            group.first_seen_at = Time.current
+            group.last_seen_at = Time.current
+            group.occurrences_count = 0
+          end
+        rescue ActiveRecord::RecordNotUnique
+          # Two threads raced to create the same fingerprint. The unique index
+          # prevented a duplicate row; just fetch the winner's record.
+          retry
         end
-      rescue ActiveRecord::RecordNotUnique
-        # Two threads raced to create the same fingerprint. The unique index
-        # prevented a duplicate row; just fetch the winner's record.
-        retry
 
-        was_resolved = error_group.status == "resolved"
-
-        if was_resolved
+        if error_group.status == "resolved"
           Rails.logger.info "[Faultline] Reopening resolved error group #{error_group.id}: #{error_group.exception_class}"
           error_group.update!(
             status: "unresolved",
