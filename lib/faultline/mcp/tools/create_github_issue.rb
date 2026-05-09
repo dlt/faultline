@@ -8,6 +8,19 @@ module Faultline
           def mutates?
             true
           end
+
+          def description
+            "Create a GitHub issue for an error group using the most recent occurrence as context. Requires github_repo and github_token to be configured. Mutating tool — disabled when mcp_readonly is true."
+          end
+
+          def input_schema
+            {
+              properties: {
+                id: { type: "integer", description: "Error group id" }
+              },
+              required: ["id"]
+            }
+          end
         end
 
         private

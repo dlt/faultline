@@ -32,6 +32,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.2.0"
 
   spec.add_dependency "rails", ">= 8.0"
+  spec.add_dependency "mcp", "~> 0.15"
 
   spec.add_development_dependency "rspec-rails", "~> 7.0"
   spec.add_development_dependency "simplecov", "~> 0.22"

@@ -4,6 +4,19 @@ module Faultline
   module Mcp
     module Tools
       class GetTrace < Base
+        def self.description
+          "Get a single APM request trace by id, including all spans (SQL, view, HTTP, Redis)."
+        end
+
+        def self.input_schema
+          {
+            properties: {
+              id: { type: "integer", description: "Request trace id" }
+            },
+            required: ["id"]
+          }
+        end
+
         private
 
         def execute

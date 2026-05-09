@@ -8,10 +8,12 @@ module Faultline
     before_action :authenticate_token!
 
     def handle
-      render json: {
-        status: "ok",
-        readonly: Faultline.configuration.mcp_readonly
-      }
+      status, headers, body = Faultline::Mcp.transport.call(request.env)
+
+      headers.each { |k, v| response.headers[k] = v }
+      body_str = body.respond_to?(:each) ? body.each_with_object(+"") { |chunk, s| s << chunk.to_s } : body.to_s
+
+      render body: body_str, status: status, content_type: response.headers["Content-Type"]
     end
 
     private

@@ -8,6 +8,20 @@ module Faultline
           def mutates?
             true
           end
+
+          def description
+            "Mark an error group as resolved. Mutating tool — disabled when mcp_readonly is true."
+          end
+
+          def input_schema
+            {
+              properties: {
+                id: { type: "integer", description: "Error group id" },
+                note: { type: "string", description: "Optional note logged with the resolution" }
+              },
+              required: ["id"]
+            }
+          end
         end
 
         private
