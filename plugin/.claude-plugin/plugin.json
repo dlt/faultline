@@ -1,0 +1,24 @@
+{
+  "name": "faultline",
+  "version": "0.1.0",
+  "description": "Talk to your Faultline error tracker from Claude Code — query error groups, occurrences, captured locals, and APM traces while debugging.",
+  "homepage": "https://github.com/dlt/faultline",
+  "repository": "https://github.com/dlt/faultline",
+  "license": "MIT",
+  "keywords": ["error-tracking", "rails", "apm", "debugging", "mcp"],
+  "userConfig": {
+    "faultline_url": {
+      "type": "string",
+      "title": "Faultline URL",
+      "description": "Base URL of your Faultline mount, including the engine path. Example: http://localhost:3000/faultline (no trailing slash). The plugin appends /mcp.",
+      "required": true
+    },
+    "faultline_token": {
+      "type": "string",
+      "title": "MCP Bearer Token",
+      "description": "One of the tokens you set in config.mcp_tokens in your Faultline initializer.",
+      "sensitive": true,
+      "required": true
+    }
+  }
+}

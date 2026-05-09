@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "faultline": {
+      "type": "http",
+      "url": "${user_config.faultline_url}/mcp",
+      "headers": {
+        "Authorization": "Bearer ${user_config.faultline_token}"
+      }
+    }
+  }
+}
