@@ -16,6 +16,7 @@ require "faultline/notifiers/discord"
 require "faultline/notifiers/webhook"
 require "faultline/notifiers/resend"
 require "faultline/notifiers/email"
+require "faultline/mcp"
 
 module Faultline
   class << self
