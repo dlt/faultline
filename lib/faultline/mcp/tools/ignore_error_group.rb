@@ -8,6 +8,19 @@ module Faultline
           def mutates?
             true
           end
+
+          def description
+            "Mark an error group as ignored. Mutating tool — disabled when mcp_readonly is true."
+          end
+
+          def input_schema
+            {
+              properties: {
+                id: { type: "integer", description: "Error group id" }
+              },
+              required: ["id"]
+            }
+          end
         end
 
         private

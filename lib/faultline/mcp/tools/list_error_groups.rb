@@ -4,6 +4,21 @@ module Faultline
   module Mcp
     module Tools
       class ListErrorGroups < Base
+        def self.description
+          "List recent error groups, ordered by last_seen_at descending. Filter by status, free-text search, or a since timestamp."
+        end
+
+        def self.input_schema
+          {
+            properties: {
+              status: { type: "string", enum: VALID_STATUSES, description: "Filter by status" },
+              since: { type: "string", description: "ISO 8601 timestamp; only groups with last_seen_at after this are returned" },
+              search: { type: "string", description: "Free-text search across exception_class, message, and file_path" },
+              limit: { type: "integer", minimum: 1, maximum: 100, description: "Max number of groups to return (default 25)" }
+            }
+          }
+        end
+
         private
 
         def execute

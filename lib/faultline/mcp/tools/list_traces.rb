@@ -6,6 +6,21 @@ module Faultline
       class ListTraces < Base
         SLOW_THRESHOLD_MS = 1000
 
+        def self.description
+          "List recent APM request traces. Requires enable_apm = true. Filter by endpoint, by since timestamp (default 24h ago), or restrict to slow requests (>= 1000ms)."
+        end
+
+        def self.input_schema
+          {
+            properties: {
+              since: { type: "string", description: "ISO 8601 timestamp (default: 24 hours ago)" },
+              endpoint: { type: "string", description: "Filter by endpoint, e.g. UsersController#show" },
+              slow_only: { type: "boolean", description: "Only include traces with duration_ms >= 1000" },
+              limit: { type: "integer", minimum: 1, maximum: 100, description: "Max traces to return (default 25)" }
+            }
+          }
+        end
+
         private
 
         def execute

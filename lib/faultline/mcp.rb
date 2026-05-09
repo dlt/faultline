@@ -26,5 +26,48 @@ module Faultline
       "ignore_error_group"  => Tools::IgnoreErrorGroup,
       "create_github_issue" => Tools::CreateGithubIssue
     }.freeze
+
+    SERVER_NAME = "faultline"
+
+    class << self
+      def transport
+        @transport ||= build_transport
+      end
+
+      def reset_transport!
+        @transport = nil
+      end
+
+      private
+
+      def build_transport
+        require "mcp"
+        require "mcp/server/transports/streamable_http_transport"
+        ::MCP::Server::Transports::StreamableHTTPTransport.new(
+          ::MCP::Server.new(name: SERVER_NAME, tools: build_mcp_tools),
+          stateless: true
+        )
+      end
+
+      def build_mcp_tools
+        TOOLS.map { |name, tool| adapt_tool(name, tool) }
+      end
+
+      def adapt_tool(name, faultline_tool)
+        Class.new(::MCP::Tool).tap do |klass|
+          klass.tool_name(name)
+          klass.description(faultline_tool.description)
+          klass.input_schema(faultline_tool.input_schema)
+          klass.define_singleton_method(:call) do |server_context: nil, **kwargs|
+            result = faultline_tool.call(kwargs)
+            errored = result.is_a?(Hash) && result.key?(:error)
+            ::MCP::Tool::Response.new(
+              [{ type: "text", text: result.to_json }],
+              error: errored
+            )
+          end
+        end
+      end
+    end
   end
 end
