@@ -26,6 +26,7 @@ A self-hosted error tracking engine for Rails 8+ applications. Track errors, get
 - **Configurable Authentication** - Integrate with Devise, Warden, or custom auth
 - **Request Context** - Capture URL, params, headers, user info, and custom data
 - **APM (Experimental)** - Track response times, throughput, database query counts, span waterfall timelines, and CPU flame graphs per endpoint
+- **MCP Server** - Built-in Model Context Protocol endpoint and Claude Code plugin so AI assistants can fetch error context (backtraces, locals, traces) directly while debugging
 
 ## Requirements
 
@@ -547,6 +548,63 @@ The INSERT happens *after* Rails sends the response, so users don't wait for it.
 - External service monitoring (Redis, Elasticsearch, HTTP)
 - Advanced alerting on performance metrics
 - Historical data over months/years
+
+## MCP (Model Context Protocol)
+
+Faultline ships an in-process MCP server you can mount alongside the dashboard. It lets Claude Code (or any MCP client) query your error data — groups, occurrences with captured locals, APM traces — directly from your editor while debugging, instead of you copy-pasting from the dashboard.
+
+The server runs inside the same Rails process as the engine, so it has direct ActiveRecord access. No separate daemon, no JSON API layer.
+
+### Enabling MCP
+
+```ruby
+# config/initializers/faultline.rb
+Faultline.configure do |c|
+  c.mcp_enabled  = true
+  c.mcp_tokens   = [ENV.fetch("FAULTLINE_MCP_TOKEN")]
+  c.mcp_readonly = true   # default; mutating tools (resolve/ignore/create_github_issue) are gated
+end
+```
+
+Generate a strong token (`SecureRandom.hex(32)`), put it in your secret store, and pass it as `FAULTLINE_MCP_TOKEN`. Tokens are compared with timing-safe SHA256 digests.
+
+The endpoint lives at `<your-faultline-mount>/mcp`, e.g. `https://app.example.com/faultline/mcp`. It returns 404 unless `mcp_enabled` is true and 401 unless the request carries `Authorization: Bearer <token>` matching one of `mcp_tokens`.
+
+### Available tools
+
+Read-only:
+- `list_error_groups` — recent groups; filter by `status`, `since`, `search`, `limit`
+- `get_error_group` — full group + summary of recent occurrences
+- `get_occurrence` — full occurrence with backtrace, captured locals, filtered request params, source context
+- `recent_occurrences` — paginate occurrences for a group
+- `error_stats` — time-bucketed occurrence counts
+- `list_traces` / `get_trace` — APM data (requires `enable_apm`)
+
+Mutating (only when `mcp_readonly: false`):
+- `resolve_error_group` (with optional `note`)
+- `ignore_error_group`
+- `create_github_issue` (requires `github_repo`/`github_token` to be set)
+
+Locals and request params pass through `resolved_filter_parameters` and `VariableSerializer` — agents only see what the dashboard would show.
+
+### Installing the Claude Code plugin
+
+The gem ships a Claude Code plugin under `plugin/` with a debugging skill and two slash commands (`/faultline-recent`, `/faultline-debug`). It declares the MCP server, prompts the user for their Faultline URL and token at install time, and substitutes them into the `Authorization` header automatically.
+
+For local development against a checkout of this repo:
+
+```bash
+claude --plugin-dir /path/to/faultline/plugin
+```
+
+For team distribution, publish a marketplace from the repo and have teammates run:
+
+```bash
+/plugin marketplace add <your-org>/faultline
+/plugin install faultline@<your-org>-faultline
+```
+
+Claude Code will prompt for `faultline_url` (e.g. `https://app.example.com/faultline`) and `faultline_token`, store them in user config, and inject them into every MCP request.
 
 ## Comparison with Alternatives
 
