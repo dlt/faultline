@@ -589,7 +589,7 @@ Locals and request params pass through `resolved_filter_parameters` and `Variabl
 
 ### Installing the Claude Code plugin
 
-The gem ships a Claude Code plugin under `plugin/` with a debugging skill and two slash commands (`/faultline-recent`, `/faultline-debug`). It declares the MCP server, prompts the user for their Faultline URL and token at install time, and substitutes them into the `Authorization` header automatically.
+The gem ships a Claude Code plugin under `plugin/` with a debugging skill and two slash commands (`/faultline:recent`, `/faultline:debug`). It declares the MCP server, prompts the user for their Faultline URL and token at install time, and substitutes them into the `Authorization` header automatically.
 
 For local development against a checkout of this repo:
 

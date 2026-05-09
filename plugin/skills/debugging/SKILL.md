@@ -1,5 +1,5 @@
 ---
-name: faultline-debugging
+name: debugging
 description: Investigate Rails production errors using the Faultline MCP server. Use when the user mentions a production exception, asks to look at recent errors, debugs a specific error group/occurrence, or wants to trace a slow endpoint.
 ---
 
