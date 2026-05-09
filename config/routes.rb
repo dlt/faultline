@@ -25,4 +25,6 @@ Faultline::Engine.routes.draw do
       get :profile
     end
   end
+
+  post "/mcp", to: "mcp#handle"
 end
