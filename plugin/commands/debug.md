@@ -3,7 +3,7 @@ description: Investigate a specific Faultline error group with full occurrence d
 argument-hint: <error-group-id>
 ---
 
-Investigate Faultline error group $ARGUMENTS using the faultline-debugging skill's investigation order:
+Investigate Faultline error group $ARGUMENTS using the `faultline:debugging` skill's investigation order:
 
 1. Call `get_error_group` with `id: $ARGUMENTS`.
 2. Pick the most recent occurrence id from the `recent_occurrences` array.
