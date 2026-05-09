@@ -30,7 +30,7 @@ RSpec.describe "Faultline::ErrorGroupsController", type: :request do
     context "with status filter" do
       it "filters by resolved status" do
         resolved = create(:error_group, :resolved)
-        unresolved = create(:error_group, status: "unresolved")
+        create(:error_group, status: "unresolved")
 
         get "/faultline", params: { status: "resolved" }
 
@@ -40,8 +40,8 @@ RSpec.describe "Faultline::ErrorGroupsController", type: :request do
 
     context "with exception_class filter" do
       it "filters by exception class" do
-        runtime = create(:error_group, exception_class: "RuntimeError")
-        standard = create(:error_group, exception_class: "StandardError")
+        create(:error_group, exception_class: "RuntimeError")
+        create(:error_group, exception_class: "StandardError")
 
         get "/faultline", params: { exception_class: "RuntimeError" }
 
@@ -51,8 +51,8 @@ RSpec.describe "Faultline::ErrorGroupsController", type: :request do
 
     context "with sorting" do
       it "sorts by frequent" do
-        less_frequent = create(:error_group, occurrences_count: 1)
-        more_frequent = create(:error_group, occurrences_count: 100)
+        create(:error_group, occurrences_count: 1)
+        create(:error_group, occurrences_count: 100)
 
         get "/faultline", params: { sort: "frequent" }
 
@@ -94,7 +94,7 @@ RSpec.describe "Faultline::ErrorGroupsController", type: :request do
 
     context "with occurrences" do
       it "includes occurrence data in the response" do
-        occurrence = create(:error_occurrence, error_group: error_group)
+        create(:error_occurrence, error_group: error_group)
         # The show page may have complex rendering with JS charts
         # We test the basic functionality here
         get "/faultline/error_groups/#{error_group.id}"

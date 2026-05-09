@@ -70,7 +70,7 @@ RSpec.describe Faultline::ErrorOccurrence, type: :model do
 
   describe ".recent" do
     it "orders by created_at descending" do
-      old = create(:error_occurrence, created_at: 2.days.ago)
+      create(:error_occurrence, created_at: 2.days.ago)
       new = create(:error_occurrence, created_at: 1.hour.ago)
 
       expect(described_class.recent.first).to eq(new)

@@ -14,9 +14,8 @@ RSpec.describe Faultline::Middleware do
     end
 
     it "enables TracePoint during request" do
-      tracepoint_enabled = false
       app = lambda do |env|
-        tracepoint_enabled = TracePoint.trace(:raise) { }.enabled?
+        TracePoint.trace(:raise) { }.enabled?
         TracePoint.trace(:raise) { }.disable
         [200, {}, ["OK"]]
       end
@@ -179,9 +178,12 @@ RSpec.describe Faultline::Middleware do
 
     context "when exception raised in gem code" do
       it "captures locals from the last app-code binding" do
-        # Simulate having tracked an app binding before the gem exception
+        # Simulate having tracked an app binding before the gem exception.
+        # local_var_for_test is set via local_variable_set so Ruby's
+        # assigned-but-unused warning doesn't fire (the value is read by
+        # the binding capture, not by direct reference).
         app_binding = binding
-        local_var_for_test = "test_value"
+        app_binding.local_variable_set(:local_var_for_test, "test_value")
         Thread.current[described_class::THREAD_APP_BINDING_KEY] = {
           binding: app_binding,
           path: "/app/controllers/users_controller.rb",
@@ -285,8 +287,10 @@ RSpec.describe Faultline::Middleware do
 
       # Simulate app code that calls a gem method which raises
       app = lambda do |_env|
-        my_local_var = { key: "value" }
-        another_var = 42
+        # Underscore-prefixed because these are captured by TracePoint, not
+        # read directly — the test only asserts that local_variables is a Hash.
+        _my_local_var = { key: "value" }
+        _another_var = 42
         # This simulates calling a gem method that raises internally
         # In reality, the TracePoint would track lines up to this point
         raise StandardError, "Gem error"

@@ -175,7 +175,7 @@ module Faultline
         #{source_lines}
         ```
       MARKDOWN
-    rescue => e
+    rescue
       ""
     end
   end

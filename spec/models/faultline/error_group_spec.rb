@@ -87,6 +87,26 @@ RSpec.describe Faultline::ErrorGroup, type: :model do
         described_class.find_or_create_from_exception(exception)
       }.not_to change(described_class, :count)
     end
+
+    it "reopens a resolved group when the same exception fires again" do
+      group = described_class.find_or_create_from_exception(exception)
+      group.update!(status: "resolved", resolved_at: 1.hour.ago)
+
+      reopened = described_class.find_or_create_from_exception(exception)
+
+      expect(reopened.id).to eq(group.id)
+      expect(reopened.status).to eq("unresolved")
+      expect(reopened.resolved_at).to be_nil
+    end
+
+    it "bumps last_seen_at on existing unresolved groups" do
+      group = described_class.find_or_create_from_exception(exception)
+      group.update_columns(last_seen_at: 1.hour.ago)
+
+      described_class.find_or_create_from_exception(exception)
+
+      expect(group.reload.last_seen_at).to be > 1.minute.ago
+    end
   end
 
   describe ".sanitize_message" do
