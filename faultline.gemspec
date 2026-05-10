@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
   }
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
-    Dir["{app,config,lib}/**/*", "MIT-LICENSE", "CHANGELOG.md", "README.md"]
+    Dir["{app,config,lib,plugin}/**/*", "MIT-LICENSE", "CHANGELOG.md", "README.md"]
   end
 
   spec.required_ruby_version = ">= 3.2.0"
