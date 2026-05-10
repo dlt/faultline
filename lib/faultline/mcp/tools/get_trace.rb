@@ -20,6 +20,10 @@ module Faultline
         private
 
         def execute
+          unless Faultline.configuration.enable_apm
+            return { error: "APM is disabled. Set enable_apm = true to use trace tools." }
+          end
+
           unless Faultline::RequestTrace.table_exists_for_apm?
             return { error: "APM tables not present. Run the faultline_request_traces migration." }
           end
