@@ -582,14 +582,25 @@ Read-only:
 
 Mutating (only when `mcp_readonly: false`):
 - `resolve_error_group` (with optional `note`)
+- `unresolve_error_group`
 - `ignore_error_group`
+- `delete_error_group` — permanently removes the group and all occurrences
+- `bulk_update_error_groups` — apply `resolve` / `unresolve` / `ignore` / `delete` to many ids in one call
 - `create_github_issue` (requires `github_repo`/`github_token` to be set)
 
 Locals and request params pass through `resolved_filter_parameters` and `VariableSerializer` — agents only see what the dashboard would show.
 
 ### Installing the Claude Code plugin
 
-The gem ships a Claude Code plugin under `plugin/` with a debugging skill and two slash commands (`/faultline:recent`, `/faultline:debug`). It declares the MCP server, prompts the user for their Faultline URL and token at install time, and substitutes them into the `Authorization` header automatically.
+The gem ships a Claude Code plugin under `plugin/` that declares the MCP server, prompts the user for their Faultline URL and token at install time, and substitutes them into the `Authorization` header automatically.
+
+It includes a top-level `debugging` skill that Claude auto-invokes when you mention a production exception or ask to look at recent errors, plus task-specific skills that wrap the MCP tools:
+
+- **Investigate:** `recent`, `debug`, `compare`, `trace`, `stats`, `spike`, `since-deploy`, `triage`
+- **Act on a group:** `resolve`, `unresolve`, `ignore`, `delete`, `file-issue`
+- **Act on many groups:** `bulk`
+
+The mutating skills (`resolve`, `unresolve`, `ignore`, `delete`, `bulk`, `file-issue`) only work when your Faultline instance has `mcp_readonly: false`.
 
 For local development against a checkout of this repo:
 
