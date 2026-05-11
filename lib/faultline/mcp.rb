@@ -12,23 +12,25 @@ require "faultline/mcp/tools/resolve_error_group"
 require "faultline/mcp/tools/unresolve_error_group"
 require "faultline/mcp/tools/ignore_error_group"
 require "faultline/mcp/tools/delete_error_group"
+require "faultline/mcp/tools/bulk_update_error_groups"
 require "faultline/mcp/tools/create_github_issue"
 
 module Faultline
   module Mcp
     TOOLS = {
-      "list_error_groups"     => Tools::ListErrorGroups,
-      "get_error_group"       => Tools::GetErrorGroup,
-      "get_occurrence"        => Tools::GetOccurrence,
-      "recent_occurrences"    => Tools::RecentOccurrences,
-      "error_stats"           => Tools::ErrorStats,
-      "list_traces"           => Tools::ListTraces,
-      "get_trace"             => Tools::GetTrace,
-      "resolve_error_group"   => Tools::ResolveErrorGroup,
-      "unresolve_error_group" => Tools::UnresolveErrorGroup,
-      "ignore_error_group"    => Tools::IgnoreErrorGroup,
-      "delete_error_group"    => Tools::DeleteErrorGroup,
-      "create_github_issue"   => Tools::CreateGithubIssue
+      "list_error_groups"        => Tools::ListErrorGroups,
+      "get_error_group"          => Tools::GetErrorGroup,
+      "get_occurrence"           => Tools::GetOccurrence,
+      "recent_occurrences"       => Tools::RecentOccurrences,
+      "error_stats"              => Tools::ErrorStats,
+      "list_traces"              => Tools::ListTraces,
+      "get_trace"                => Tools::GetTrace,
+      "resolve_error_group"      => Tools::ResolveErrorGroup,
+      "unresolve_error_group"    => Tools::UnresolveErrorGroup,
+      "ignore_error_group"       => Tools::IgnoreErrorGroup,
+      "delete_error_group"       => Tools::DeleteErrorGroup,
+      "bulk_update_error_groups" => Tools::BulkUpdateErrorGroups,
+      "create_github_issue"      => Tools::CreateGithubIssue
     }.freeze
 
     SERVER_NAME = "faultline"
