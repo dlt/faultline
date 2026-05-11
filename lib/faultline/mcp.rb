@@ -11,6 +11,7 @@ require "faultline/mcp/tools/get_trace"
 require "faultline/mcp/tools/resolve_error_group"
 require "faultline/mcp/tools/unresolve_error_group"
 require "faultline/mcp/tools/ignore_error_group"
+require "faultline/mcp/tools/delete_error_group"
 require "faultline/mcp/tools/create_github_issue"
 
 module Faultline
@@ -26,6 +27,7 @@ module Faultline
       "resolve_error_group"   => Tools::ResolveErrorGroup,
       "unresolve_error_group" => Tools::UnresolveErrorGroup,
       "ignore_error_group"    => Tools::IgnoreErrorGroup,
+      "delete_error_group"    => Tools::DeleteErrorGroup,
       "create_github_issue"   => Tools::CreateGithubIssue
     }.freeze
 
