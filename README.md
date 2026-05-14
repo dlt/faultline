@@ -611,8 +611,8 @@ claude --plugin-dir /path/to/faultline/plugin
 For team distribution, publish a marketplace from the repo and have teammates run:
 
 ```bash
-/plugin marketplace add <your-org>/faultline
-/plugin install faultline@<your-org>-faultline
+/plugin marketplace add dlt/faultline
+/plugin install faultline@dlt-faultline
 ```
 
 Claude Code will prompt for `faultline_url` (e.g. `https://app.example.com/faultline`) and `faultline_token`, store them in user config, and inject them into every MCP request.
