@@ -1,0 +1,13 @@
+{
+  "name": "dlt-faultline",
+  "owner": { "name": "dlt" },
+  "description": "Claude Code plugin for Faultline, a self-hosted error tracker for Rails 8+.",
+  "plugins": [
+    {
+      "name": "faultline",
+      "source": "./plugin",
+      "description": "Talk to your Faultline error tracker from Claude Code — query error groups, occurrences, captured locals, and APM traces while debugging.",
+      "version": "0.1.0"
+    }
+  ]
+}
