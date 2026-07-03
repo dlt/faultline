@@ -1,6 +1,6 @@
 ---
 description: Find Faultline error groups that have been active recently, ranked by occurrence count.
-argument-hint: [duration like 1h, 4h, 1d — default 1h]
+argument-hint: "[duration like 1h, 4h, 1d — default 1h]"
 ---
 
 Surface error groups that are firing right now.
