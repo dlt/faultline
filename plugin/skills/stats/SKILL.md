@@ -1,6 +1,6 @@
 ---
 description: Show time-bucketed error occurrence counts for the Faultline instance.
-argument-hint: [period]
+argument-hint: "[period]"
 ---
 
 Show error volume over a time window using the `error_stats` MCP tool.
