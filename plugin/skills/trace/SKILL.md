@@ -1,6 +1,6 @@
 ---
 description: Inspect Faultline APM traces — slow endpoints or a specific request's span breakdown.
-argument-hint: [endpoint | trace-id]
+argument-hint: "[endpoint | trace-id]"
 ---
 
 Investigate APM traces using `list_traces` and `get_trace`.
